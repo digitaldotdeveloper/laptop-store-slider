@@ -23,10 +23,25 @@ The slider is meant to be screen-recorded on a phone and posted. Phones are tall
 9:16, so Instagram centre-crops the recording — the chrome, the price and the button are
 all held inside the band that survives that crop (`--crop` in the stylesheet).
 
-The opening slide's images load from markup; the other three drip in one at a time once
-the first laptop has landed, so nothing decodes during the animation. Backgrounds are
-picked per orientation by `<picture>`, so a phone never downloads the desktop one.
-Measured on a 4×-throttled phone profile: 60 fps median, ~290 KB for the first slide.
+The opening slide's images load from markup and get the connection to themselves; the
+other three follow three at a time, and each slide also pulls the next one in as it
+starts playing. The show waits for the first laptop to be whole, or 2.6s, whichever
+comes first. Backgrounds are picked per orientation by `<picture>`, so a phone never
+downloads the desktop one.
+
+Measured against the deployed page on regular 4G with a 4× CPU throttle:
+
+| | |
+|---|---|
+| first contentful paint | 0.86 s |
+| first laptop complete | 2.8 s (293 KB) |
+| everything loaded | 10.6 s (1.1 MB, 37 files) |
+| frame time | 16.7 ms median, 16.8 ms p95 |
+
+Each laptop runs 9.6 s, so a full loop is about 38 s.
+
+`tools/load.js` prints that table and checks every slide finishes downloading before the
+dive reaches it — that check is what caught slide 2 arriving half-loaded.
 
 ## Where the pictures come from
 
