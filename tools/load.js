@@ -30,7 +30,8 @@ setTimeout(() => { console.error('watchdog'); process.exit(1); }, 150e3).unref()
     res.sort((a,b)=>b.e-a.e);
     return JSON.stringify({dom:Math.round(nav.domContentLoadedEventEnd),load:Math.round(nav.loadEventEnd),paint,
       total_kb:Math.round(res.reduce((s,x)=>s+x.kb,0)),count:res.length,
-      slowest:res.slice(0,8).map(x=>x.n+' '+x.s+'->'+x.e+'ms '+x.kb+'KB'),
+      ready:['nightforge','aero','studio','ledger'].map(m=>{const r=res.filter(x=>x.n.startsWith(m));
+        return m+' complete @'+Math.max(...r.map(x=>x.e))+'ms ('+r.reduce((s,x)=>s+x.kb,0)+'KB, needed @'+(['nightforge','aero','studio','ledger'].indexOf(m)*9600)+'ms)';}),
       firstFrameOfAnimation:window.__t0??null});})()` });
   console.log(JSON.parse(r.result.value));
   ws.close(); ch.kill(); try { fs.rmSync(PROFILE, { recursive: true, force: true }); } catch {}
