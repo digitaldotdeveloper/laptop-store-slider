@@ -7,7 +7,8 @@ const CHROME = ['C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Pro
 const RUN = Date.now().toString(36);                       // fresh port + profile per run: a stale
 const PORT = 9400 + (process.pid % 400), PROFILE = path.join(os.tmpdir(), 'laptop-slider-cdp-' + RUN);  // browser used to answer /json with dead targets
 const root = path.resolve(__dirname, '..');
-const url = 'file:///' + path.join(root, 'index.html').split(String.fromCharCode(92)).join('/') + '?cb=' + Date.now() + '#s' + SLIDE;
+const LIVE = process.env.LIVE_URL;                        // LIVE_URL=... shoots the deployed page instead
+const url = (LIVE || 'file:///' + path.join(root, 'index.html').split(String.fromCharCode(92)).join('/')) + '?cb=' + Date.now() + '#s' + SLIDE;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 setTimeout(() => { console.error('watchdog: giving up'); process.exit(1); }, 90e3).unref();
 
