@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Laptop Store Slider</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   LAPTOP STORE SLIDER — layers + transitions rig (art = placeholders)
+   Keys: ← → switch · L layer map · S slow-mo · Space pause
+   ============================================================ */
+:root{
+  --k:1;                                   /* global time scale (S = slow-mo) */
+  --out:cubic-bezier(.16,1,.3,1);          /* expo out */
+  --in:cubic-bezier(.7,0,.84,0);           /* expo in */
+  --pop:cubic-bezier(.34,1.56,.64,1);      /* overshoot */
+  --sans:"Space Grotesk",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0a0b10;overflow:hidden}
+body{font-family:var(--sans);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+.stage{position:fixed;inset:0;overflow:hidden;--dir:1;
+  --c:#f4f4f6;--c-dim:rgba(244,244,246,.5);--c-line:rgba(244,244,246,.18)}
+.stage[data-chrome="dark"]{--c:#101216;--c-dim:rgba(16,18,22,.55);--c-line:rgba(16,18,22,.18)}
+
+/* ---------- slide shell ---------- */
+.slide{position:absolute;inset:0;visibility:hidden;color:var(--ink)}
+.slide.is-active{visibility:visible}
+
+/* L1 — background plate (reveal modes: iris / diagonal / shutter / columns) */
+.bg{position:absolute;inset:0}
+.bg .fill,.bg .st{background:
+  radial-gradient(ellipse 60% 70% at 66% 46%,var(--bg2),transparent 70%),
+  linear-gradient(160deg,var(--bg) 40%,var(--bg3))}
+.bg .fill{position:absolute;inset:0}
+.bg .strips{position:absolute;inset:0;display:flex}
+.bg .st{flex:1;height:100%;background-size:700% 100%;background-position:calc(var(--i)*16.6667%) 0}
+.slide[data-trans="iris"] .strips,.slide[data-trans="diagonal"] .strips{display:none}
+.slide[data-trans="shutter"] .fill,.slide[data-trans="columns"] .fill{display:none}
+
+/* L2 — grid texture */
+.grid{position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:64px 64px;
+  -webkit-mask:radial-gradient(ellipse 55% 60% at 66% 46%,#000 10%,transparent 75%);
+          mask:radial-gradient(ellipse 55% 60% at 66% 46%,#000 10%,transparent 75%)}
+
+/* L3 — ghost category word */
+.ghost{position:absolute;left:0;right:0;top:50%;margin-top:-.5em;font-size:clamp(120px,24vw,420px);
+  font-weight:700;line-height:1;letter-spacing:-.04em;white-space:nowrap;pointer-events:none}
+.ghost .gw{display:inline-block;color:transparent;-webkit-text-stroke:1.5px var(--ghost);
+  animation:marquee calc(60s) linear infinite}
+@keyframes marquee{to{transform:translateX(-50%)}}
+
+/* L4 — laptop rig : rig-pos(place+parallax) > rig(enter/exit) > float(ambient) > cam(3/4 view) */
+.rig-pos{position:absolute;left:var(--rx,65%);top:var(--ry,42%);width:0;height:0;perspective:1900px;
+  --w:min(44vw,740px);--h:calc(var(--w)*.625)}
+.shadow{position:absolute;left:calc(var(--w)*-.62);top:calc(var(--h)*.62);width:calc(var(--w)*1.24);
+  height:calc(var(--w)*.2);border-radius:50%;background:radial-gradient(closest-side,var(--shade),transparent);filter:blur(10px)}
+.rig{position:absolute;transform-style:preserve-3d}
+.float{transform-style:preserve-3d;animation:bob 7s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-10px) rotateZ(-.4deg)}}
+.cam{position:absolute;left:calc(var(--w)*-.5);top:calc(var(--h)*-.62);width:var(--w);height:var(--h);
+  transform-style:preserve-3d;transform:rotateX(-16deg) rotateY(-24deg)}
+
+.deck{position:absolute;left:-3%;top:100%;width:106%;height:calc(var(--w)*.42);transform-origin:50% 0;
+  transform:rotateX(90deg);transform-style:preserve-3d;border-radius:4px 4px 16px 16px;
+  background:linear-gradient(180deg,var(--shell2),var(--shell))}
+.deck .keys{position:absolute;left:9%;right:9%;top:9%;height:50%;border-radius:6px;
+  background:
+   repeating-linear-gradient(90deg,transparent 0 calc(100%/15 - 3px),var(--edge) calc(100%/15 - 3px) calc(100%/15)),
+   repeating-linear-gradient(0deg,transparent 0 calc(100%/6 - 3px),var(--edge) calc(100%/6 - 3px) calc(100%/6)),
+   linear-gradient(var(--keycap),var(--keycap))}
+.deck .pad{position:absolute;left:34%;right:34%;top:66%;bottom:8%;border-radius:8px;
+  background:var(--shell);box-shadow:inset 0 0 0 1px var(--edge)}
+.deck .lip{position:absolute;left:0;right:0;top:100%;height:calc(var(--w)*.016);transform-origin:50% 0;
+  transform:rotateX(-90deg);background:var(--edge);border-radius:0 0 10px 10px}
+
+.lid{position:absolute;inset:0;transform-origin:50% 100%;transform-style:preserve-3d;transform:rotateX(8deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:16px 16px 5px 5px}
+.face.front{background:var(--bezel);padding:2.4% 2.2% 4.2%;overflow:hidden;box-shadow:inset 0 0 0 1px var(--edge)}
+.face.back{transform:rotateY(180deg);background:linear-gradient(135deg,var(--shell2),var(--shell) 60%);box-shadow:inset 0 0 0 1px var(--edge)}
+.face.back::after{content:"";position:absolute;left:50%;top:50%;width:9%;aspect-ratio:1;translate:-50% -50%;
+  border-radius:30%;border:2px solid var(--accent);opacity:.8}
+
+/* L5 — screen content (boot = CRT line) */
+.scr{position:relative;width:100%;height:100%;border-radius:6px;overflow:hidden;font-size:calc(var(--w)*.02);
+  background:radial-gradient(circle at 25% 30%,var(--scr1),transparent 55%),
+             radial-gradient(circle at 85% 95%,var(--scr2),transparent 60%),#05060a;color:#fff}
+.scr-top{position:absolute;left:0;right:0;top:0;height:1.6em;display:flex;align-items:center;gap:.4em;padding:0 .8em;background:rgba(255,255,255,.06)}
+.scr-top i{width:.5em;height:.5em;border-radius:50%;background:rgba(255,255,255,.35)}
+.scr-title{position:absolute;left:1.4em;top:2.6em;font-weight:700;font-size:3.4em;letter-spacing:-.03em;line-height:.9}
+.scr-cards{position:absolute;left:1.4em;right:1.4em;bottom:1.4em;height:30%;display:flex;gap:.8em}
+.scr-cards b{flex:1;border-radius:.6em;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.scr-cards b:first-child{flex:1.6;background:linear-gradient(135deg,var(--accent),transparent)}
+.glare{position:absolute;inset:-20%;pointer-events:none;opacity:0;
+  background:linear-gradient(105deg,transparent 42%,rgba(255,255,255,.22) 48%,transparent 54%)}
+
+/* L6 — spec chips (fly out of the laptop) */
+.chip-pos{position:absolute;left:var(--x);top:var(--y);width:0;height:0}
+.wire{position:absolute;left:0;top:0;height:1px;width:var(--len);transform-origin:0 50%;rotate:var(--ang);
+  background:linear-gradient(90deg,var(--accent),transparent)}
+.chip{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;padding:.7em 1em .75em;border-radius:14px;
+  background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  box-shadow:inset 0 0 0 1px var(--line2),0 20px 40px -20px rgba(0,0,0,.5)}
+.chip small{display:block;font:600 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:.45em}
+.chip strong{font-size:clamp(16px,1.5vw,24px);font-weight:700;letter-spacing:-.02em}
+.chip::before{content:"";position:absolute;left:-4px;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+
+/* L7 — accessories */
+.acc-pos{position:absolute;left:var(--x);top:var(--y);width:0;height:0}
+.acc{position:absolute;transform:translate(-50%,-50%) rotate(var(--r))}
+.acc .art{animation:bob 5s ease-in-out infinite;animation-delay:var(--ad)}
+.acc-mouse .art{width:clamp(44px,4.4vw,70px);aspect-ratio:.62;border-radius:48% 48% 46% 46%/38% 38% 62% 62%;
+  background:linear-gradient(160deg,var(--shell2),var(--shell));box-shadow:inset 0 0 0 1px var(--edge),0 30px 40px -20px var(--shade);position:relative}
+.acc-mouse .art::after{content:"";position:absolute;left:50%;top:10%;width:2px;height:24%;background:var(--accent);translate:-50% 0;border-radius:2px}
+.acc-buds .art{width:clamp(64px,6vw,96px);aspect-ratio:1.4;border-radius:40%;position:relative;
+  background:linear-gradient(170deg,#fff,#cfd3da);box-shadow:0 30px 40px -20px var(--shade)}
+.acc-buds .art::after{content:"";position:absolute;left:0;right:0;top:38%;height:1px;background:rgba(0,0,0,.18)}
+
+/* L8 — copy */
+.copy{position:absolute;left:clamp(20px,6vw,110px);top:50%;translate:0 -46%;width:min(38vw,560px)}
+.eyebrow{display:flex;align-items:center;gap:.8em;font:600 12px/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.eyebrow b{width:28px;height:1px;background:var(--accent)}
+.eyebrow em{font-style:normal;color:var(--accent)}
+.title{margin:.35em 0 .3em;font-size:clamp(52px,7.4vw,138px);font-weight:700;line-height:.88;letter-spacing:-.055em}
+.mask{display:block;overflow:hidden;padding-bottom:.06em}
+.ln{display:block}
+.title .mask:nth-child(2) .ln{color:var(--accent)}
+.desc{max-width:32em;font-size:clamp(14px,1.05vw,17px);line-height:1.55;color:var(--muted)}
+.buy{display:flex;align-items:center;gap:22px;margin-top:30px}
+.price small{display:block;font:600 10px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.price strong{font-size:clamp(24px,2.2vw,34px);font-weight:700;letter-spacing:-.03em}
+.cta{text-decoration:none;display:inline-flex;align-items:center;gap:10px;padding:15px 24px;border-radius:999px;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:15px}
+.cta svg{width:16px;height:16px;transition:transform .3s var(--out)}
+.cta:hover svg{transform:translateX(4px)}
+
+/* ---------- stage chrome ---------- */
+.brand{position:absolute;left:clamp(20px,6vw,110px);top:28px;z-index:10;color:var(--c);font-weight:700;letter-spacing:-.02em;font-size:20px;display:flex;align-items:center;gap:10px;transition:color .6s}
+.brand i{width:22px;height:14px;border:2px solid currentColor;border-radius:3px;position:relative}
+.brand i::after{content:"";position:absolute;left:-5px;right:-5px;bottom:-6px;height:2px;background:currentColor;border-radius:2px}
+.count{position:absolute;right:clamp(20px,4vw,64px);top:24px;z-index:10;color:var(--c);font:600 13px/1 var(--mono);letter-spacing:.1em;display:flex;align-items:baseline;gap:6px;transition:color .6s}
+.count .cur{display:inline-block;overflow:hidden;height:1em;font-size:34px;letter-spacing:-.04em;font-family:var(--sans);font-weight:700}
+.count .cur span{display:block;transition:transform .7s var(--out)}
+.count .tot{color:var(--c-dim)}
+.rail{position:absolute;left:clamp(20px,6vw,110px);bottom:34px;z-index:10;display:flex;gap:clamp(14px,2vw,34px);list-style:none;color:var(--c);transition:color .6s}
+.rail button{display:block;text-align:left;min-width:92px;padding-top:12px;position:relative;opacity:.45;transition:opacity .4s}
+.rail button:hover,.rail .on button{opacity:1}
+.rail .n{font:600 11px/1 var(--mono);letter-spacing:.12em}
+.rail .t{display:block;font-size:13px;margin-top:5px;font-weight:500}
+.rail .bar{position:absolute;left:0;right:0;top:0;height:2px;background:var(--c-line);overflow:hidden}
+.rail .bar i{position:absolute;inset:0;background:var(--c);transform:scaleX(0);transform-origin:0 50%}
+.rail .on .bar i{animation:prog var(--auto) linear forwards}
+.stage.paused .rail .bar i{animation-play-state:paused}
+@keyframes prog{to{transform:scaleX(1)}}
+.arrows{position:absolute;right:clamp(20px,4vw,64px);bottom:28px;z-index:10;display:flex;gap:10px;color:var(--c);transition:color .6s}
+.arrows button{width:52px;height:52px;border-radius:50%;box-shadow:inset 0 0 0 1px var(--c-line);display:grid;place-items:center;transition:box-shadow .3s,background .3s}
+.arrows button:hover{box-shadow:inset 0 0 0 1px var(--c)}
+.arrows svg{width:18px;height:18px}
+.hint{position:absolute;right:clamp(20px,4vw,64px);top:66px;z-index:10;font:500 10px/1.6 var(--mono);letter-spacing:.08em;color:var(--c-dim);text-align:right;transition:color .6s}
+.sweep{position:absolute;top:-10%;bottom:-10%;left:50%;width:3px;z-index:9;pointer-events:none;opacity:0;
+  background:var(--sweep);box-shadow:0 0 40px 8px var(--sweep)}
+
+/* ============================================================
+   ENTER timeline (ms × --k) — bg 0 · rig 250 · lid 1050 · boot 1650 · chips 2000
+   ============================================================ */
+.enter .bg{animation:var(--bgIn) calc(var(--k)*950ms) var(--out) both}
+.slide[data-trans="iris"]{--bgIn:irisIn}
+.slide[data-trans="diagonal"]{--bgIn:diagIn}
+.stage[data-dir="-1"] .slide[data-trans="diagonal"]{--bgIn:diagInR}
+.slide[data-trans="shutter"],.slide[data-trans="columns"]{--bgIn:none}
+.enter[data-trans="shutter"] .st{animation:shutIn calc(var(--k)*800ms) var(--out) calc(var(--k)*var(--i)*55ms) both}
+.enter[data-trans="shutter"] .st:nth-child(odd){transform-origin:50% 0}
+.enter[data-trans="shutter"] .st:nth-child(even){transform-origin:50% 100%}
+.enter[data-trans="columns"] .st{animation:colIn calc(var(--k)*900ms) var(--out) calc(var(--k)*var(--o)*60ms) both}
+.enter[data-trans="columns"] .st:nth-child(even){animation-name:colInB}
+.first .bg,.first .st{animation:fadeIn calc(var(--k)*900ms) ease both !important}
+@keyframes irisIn{from{clip-path:circle(0% at 65% 44%)}to{clip-path:circle(150% at 65% 44%)}}
+@keyframes diagIn{from{clip-path:polygon(100% 0,130% 0,130% 100%,130% 100%)}to{clip-path:polygon(-40% 0,130% 0,130% 100%,0 100%)}}
+@keyframes diagInR{from{clip-path:polygon(-30% 0,0 0,-30% 100%,-30% 100%)}to{clip-path:polygon(-30% 0,140% 0,100% 100%,-30% 100%)}}
+@keyframes shutIn{from{transform:scaleY(0)}}
+@keyframes colIn{from{transform:translateY(-101%)}}
+@keyframes colInB{from{transform:translateY(101%)}}
+@keyframes fadeIn{from{opacity:0}}
+
+.enter .grid{animation:fadeIn calc(var(--k)*1400ms) ease calc(var(--k)*500ms) both}
+.enter .ghost{animation:ghostIn calc(var(--k)*1300ms) var(--out) calc(var(--k)*200ms) both}
+@keyframes ghostIn{from{opacity:0;transform:translateX(calc(var(--dir)*25vw))}}
+.enter .rig{animation:rigIn calc(var(--k)*1050ms) var(--out) calc(var(--k)*250ms) both}
+@keyframes rigIn{from{opacity:0;transform:translateX(calc(var(--dir)*60vw)) translateZ(-300px) rotateY(calc(var(--dir)*-50deg))}25%{opacity:1}}
+.enter .shadow{animation:shadowIn calc(var(--k)*1000ms) var(--out) calc(var(--k)*300ms) both}
+@keyframes shadowIn{from{opacity:0;transform:translateX(calc(var(--dir)*50vw)) scaleX(.4)}}
+.enter .lid{animation:lidOpen calc(var(--k)*950ms) var(--out) calc(var(--k)*1050ms) both}
+@keyframes lidOpen{0%{transform:rotateX(-88deg)}55%{transform:rotateX(22deg)}78%{transform:rotateX(4deg)}100%{transform:rotateX(8deg)}}
+.enter .scr{animation:boot calc(var(--k)*750ms) var(--out) calc(var(--k)*1650ms) both}
+@keyframes boot{0%{clip-path:inset(49.5% 50% 49.5% 50%);filter:brightness(4)}35%{clip-path:inset(49.5% 0 49.5% 0);filter:brightness(4)}100%{clip-path:inset(0);filter:brightness(1)}}
+.enter .scr-title{animation:up calc(var(--k)*700ms) var(--out) calc(var(--k)*2050ms) both}
+.enter .scr-cards b{animation:up calc(var(--k)*600ms) var(--out) calc(var(--k)*(2150ms + var(--i)*80ms)) both}
+@keyframes up{from{opacity:0;transform:translateY(1.2em)}}
+.enter .glare{animation:glare calc(var(--k)*1100ms) ease-in-out calc(var(--k)*2300ms) both}
+@keyframes glare{0%{opacity:1;transform:translateX(-60%)}100%{opacity:1;transform:translateX(60%)}}
+.enter .chip{animation:chipIn calc(var(--k)*750ms) var(--pop) calc(var(--k)*(2000ms + var(--i)*110ms)) both}
+@keyframes chipIn{from{opacity:0;transform:translate(calc(-50% + var(--fx)),calc(-50% + var(--fy))) scale(.2)}}
+.enter .wire{animation:wireIn calc(var(--k)*600ms) var(--out) calc(var(--k)*(2350ms + var(--i)*110ms)) both}
+@keyframes wireIn{from{transform:scaleX(0)}}
+.enter .acc{animation:accIn calc(var(--k)*1100ms) var(--pop) calc(var(--k)*(1400ms + var(--i)*160ms)) both}
+@keyframes accIn{from{opacity:0;transform:translate(-50%,calc(-50% - 45vh)) rotate(calc(var(--r) + 140deg))}30%{opacity:1}}
+.enter .eyebrow{animation:up calc(var(--k)*800ms) var(--out) calc(var(--k)*500ms) both}
+.enter .ln{animation:lnIn calc(var(--k)*1000ms) var(--out) calc(var(--k)*(600ms + var(--i)*110ms)) both}
+@keyframes lnIn{from{transform:translateY(112%) skewY(6deg)}}
+.enter .desc{animation:up calc(var(--k)*800ms) var(--out) calc(var(--k)*900ms) both}
+.enter .buy{animation:up calc(var(--k)*800ms) var(--out) calc(var(--k)*1020ms) both}
+
+/* ============================================================
+   LEAVE timeline — chips 0 · copy 0 · lid closes 50 · rig exits 450
+   ============================================================ */
+.leave .chip{animation:chipOut calc(var(--k)*320ms) var(--in) calc(var(--k)*var(--i)*40ms) both}
+@keyframes chipOut{to{opacity:0;transform:translate(calc(-50% + var(--fx)),calc(-50% + var(--fy))) scale(.2)}}
+.leave .wire{animation:wireOut calc(var(--k)*200ms) var(--in) both}
+@keyframes wireOut{to{transform:scaleX(0)}}
+.leave .acc{animation:accOut calc(var(--k)*450ms) var(--in) both}
+@keyframes accOut{to{opacity:0;transform:translate(-50%,calc(-50% + 30vh)) rotate(calc(var(--r) - 60deg))}}
+.leave .scr{animation:bootOff calc(var(--k)*300ms) var(--in) both}
+@keyframes bootOff{0%{clip-path:inset(0);filter:brightness(1)}60%{clip-path:inset(49.5% 0 49.5% 0);filter:brightness(4)}100%{clip-path:inset(49.5% 50% 49.5% 50%);filter:brightness(4)}}
+.leave .lid{animation:lidClose calc(var(--k)*560ms) cubic-bezier(.5,0,.75,0) calc(var(--k)*120ms) both}
+@keyframes lidClose{from{transform:rotateX(8deg)}to{transform:rotateX(-88deg)}}
+.leave .rig{animation:rigOut calc(var(--k)*750ms) var(--in) calc(var(--k)*450ms) both}
+@keyframes rigOut{to{opacity:0;transform:translateX(calc(var(--dir)*-60vw)) translateZ(-300px) rotateY(calc(var(--dir)*50deg))}}
+.leave .shadow{animation:shadowOut calc(var(--k)*700ms) var(--in) calc(var(--k)*450ms) both}
+@keyframes shadowOut{to{opacity:0;transform:translateX(calc(var(--dir)*-50vw)) scaleX(.4)}}
+.leave .ghost{animation:ghostOut calc(var(--k)*700ms) var(--in) calc(var(--k)*100ms) both}
+@keyframes ghostOut{to{opacity:0;transform:translateX(calc(var(--dir)*-25vw))}}
+.leave .eyebrow,.leave .desc,.leave .buy{animation:fadeUp calc(var(--k)*420ms) var(--in) both}
+@keyframes fadeUp{to{opacity:0;transform:translateY(-14px)}}
+.leave .ln{animation:lnOut calc(var(--k)*500ms) var(--in) calc(var(--k)*var(--i)*60ms) both}
+@keyframes lnOut{to{transform:translateY(-112%) skewY(-6deg)}}
+
+.stage.sweeping .sweep{animation:sweep calc(var(--k)*900ms) var(--out) both}
+@keyframes sweep{0%{opacity:1;transform:translateX(calc(var(--dir)*52vw)) scaleX(1)}60%{opacity:1}100%{opacity:0;transform:translateX(calc(var(--dir)*-52vw)) scaleX(8)}}
+
+/* ---------- layer map (L) ---------- */
+.layers [data-layer]{outline:1px dashed #ff00d4;outline-offset:-1px}
+.layers [data-layer]::after{content:attr(data-layer);position:absolute;left:4px;top:4px;z-index:99;padding:2px 6px;
+  font:600 10px/1.4 var(--mono);color:#fff;background:#ff00d4;border-radius:3px;white-space:nowrap;pointer-events:none}
+.layers .scr::after,.layers .face::after{display:block}
+
+/* ---------- mobile ---------- */
+@media (max-width:760px){
+  .rig-pos{--rx:50%;--ry:30%;--w:74vw}
+  .copy{left:20px;right:20px;width:auto;top:auto;bottom:118px;translate:none}
+  .title{font-size:clamp(40px,12vw,60px)}
+  .desc{display:none}
+  .buy{margin-top:18px}
+  .chip-pos{left:var(--mx);top:var(--my)}
+  .chip{padding:.5em .7em;font-size:12px;border-radius:10px}
+  .chip strong{font-size:15px}
+  .acc-pos,.hint{display:none}
+  .rail{left:20px;bottom:30px;gap:12px}.rail button{min-width:44px}.rail .t{display:none}
+  .arrows{right:20px;bottom:22px}.arrows button{width:44px;height:44px}
+  .ghost{top:30%}
+}
+@media (prefers-reduced-motion:reduce){:root{--k:.01}}
+</style>
+</head>
+<body>
+
+<main class="stage" id="stage" data-dir="1">
+  <div class="slides" id="slides"></div>
+  <div class="sweep" data-layer="sweep"></div>
+
+  <div class="brand"><i></i>CIRCUIT</div>
+  <div class="count"><span class="cur"><span id="cur"></span></span><span class="tot" id="tot"></span></div>
+  <div class="hint">← → switch · L layers<br>S slow-mo · Space pause</div>
+  <ol class="rail" id="rail"></ol>
+  <div class="arrows">
+    <button id="prev" aria-label="Previous"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>
+    <button id="next" aria-label="Next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+  </div>
+</main>
+
+<script>
+/* ============================================================
+   DATA — placeholder models/specs/prices. Swap freely.
+   pos: % of stage (desktop x/y, mobile mx/my)
+   trans: iris | diagonal | shutter | columns
+   ============================================================ */
+const SLIDES = [
+  { cat:'Gaming', name:['Nightforge','16'], ghost:'GAMING', trans:'iris', chrome:'light', price:'$2,499',
+    desc:'Placeholder copy — a desktop-class GPU, a 240Hz panel and a vapor-chamber cooler in a chassis that still fits a backpack.',
+    theme:{bg:'#07080c',bg2:'#3a0d16',bg3:'#120a10',ink:'#f5f5f7',muted:'#9496a3',accent:'#ff3d3d','on-accent':'#fff',
+      shell:'#16181e',shell2:'#262932',edge:'#0a0b0f',keycap:'#1e2027',bezel:'#08090c',scr1:'#ff3d3d',scr2:'#5b1030',
+      line:'rgba(255,255,255,.05)',line2:'rgba(255,255,255,.12)',glass:'rgba(20,22,28,.55)',ghost:'rgba(255,255,255,.09)',shade:'rgba(0,0,0,.9)'},
+    specs:[{k:'Graphics',v:'16 GB GPU',x:47,y:17,mx:22,my:14},{k:'Display',v:'240 Hz QHD+',x:92,y:21,mx:78,my:14},
+           {k:'Memory',v:'32 GB DDR5',x:92,y:64,mx:82,my:50},{k:'Storage',v:'2 TB NVMe',x:49,y:73,mx:20,my:50}],
+    acc:[{t:'mouse',x:84,y:86,r:-18},{t:'buds',x:57,y:90,r:12}] },
+
+  { cat:'Ultrabook', name:['Aero','Air 14'], ghost:'ULTRALIGHT', trans:'shutter', chrome:'dark', price:'$1,299',
+    desc:'Placeholder copy — under 1.1 kg, all-day battery and an OLED screen that makes spreadsheets look like art.',
+    theme:{bg:'#eef0f3',bg2:'#ffffff',bg3:'#d9dde4',ink:'#101216',muted:'#5d6270',accent:'#2f5bff','on-accent':'#fff',
+      shell:'#c3c8d0',shell2:'#e3e6eb',edge:'#9aa0aa',keycap:'#b5bac3',bezel:'#111318',scr1:'#2f5bff',scr2:'#8fd3ff',
+      line:'rgba(16,18,22,.05)',line2:'rgba(16,18,22,.1)',glass:'rgba(255,255,255,.6)',ghost:'rgba(16,18,22,.08)',shade:'rgba(40,50,70,.35)'},
+    specs:[{k:'Weight',v:'1.08 kg',x:47,y:17,mx:22,my:14},{k:'Battery',v:'22 h',x:92,y:21,mx:78,my:14},
+           {k:'Panel',v:'2.8K OLED',x:92,y:64,mx:82,my:50},{k:'Thin',v:'11.9 mm',x:49,y:73,mx:20,my:50}],
+    acc:[{t:'buds',x:86,y:86,r:-10},{t:'mouse',x:58,y:90,r:22}] },
+
+  { cat:'Creator', name:['Studio','Pro 16'], ghost:'CREATOR', trans:'diagonal', chrome:'light', price:'$3,199',
+    desc:'Placeholder copy — reference-grade mini-LED, colour that matches print, and the headroom to scrub 8K timelines.',
+    theme:{bg:'#140f1c',bg2:'#4a2b12',bg3:'#1d1228',ink:'#fbf6ee',muted:'#a79cb3',accent:'#ffb23f','on-accent':'#1a1206',
+      shell:'#2a2830',shell2:'#3d3a45',edge:'#141318',keycap:'#232128',bezel:'#08070a',scr1:'#ffb23f',scr2:'#7a3cff',
+      line:'rgba(255,255,255,.05)',line2:'rgba(255,255,255,.12)',glass:'rgba(30,24,40,.55)',ghost:'rgba(255,255,255,.08)',shade:'rgba(0,0,0,.85)'},
+    specs:[{k:'Display',v:'4K Mini-LED',x:47,y:17,mx:22,my:14},{k:'Colour',v:'100% DCI-P3',x:92,y:21,mx:78,my:14},
+           {k:'Memory',v:'64 GB',x:92,y:64,mx:82,my:50},{k:'Input',v:'Pen ready',x:49,y:73,mx:20,my:50}],
+    acc:[{t:'mouse',x:85,y:87,r:14},{t:'buds',x:57,y:90,r:-14}] },
+
+  { cat:'Business', name:['Ledger','X14'], ghost:'BUSINESS', trans:'columns', chrome:'dark', price:'$1,749',
+    desc:'Placeholder copy — IR face login, 5G anywhere and a chassis tested against drops, dust and the 7am commute.',
+    theme:{bg:'#dfe3d6',bg2:'#f4f6ee',bg3:'#c7cdbb',ink:'#0f1a16',muted:'#56645c',accent:'#0d6b50','on-accent':'#fff',
+      shell:'#2f3438',shell2:'#454b50',edge:'#1c2023',keycap:'#262a2e',bezel:'#0c0e10',scr1:'#12a37a',scr2:'#1d3c8c',
+      line:'rgba(15,26,22,.06)',line2:'rgba(15,26,22,.12)',glass:'rgba(255,255,255,.55)',ghost:'rgba(15,26,22,.08)',shade:'rgba(30,40,30,.45)'},
+    specs:[{k:'Security',v:'IR login',x:47,y:17,mx:22,my:14},{k:'Network',v:'5G + Wi-Fi 7',x:92,y:21,mx:78,my:14},
+           {k:'Rugged',v:'MIL-STD tested',x:92,y:64,mx:82,my:50},{k:'Battery',v:'18 h',x:49,y:73,mx:20,my:50}],
+    acc:[{t:'mouse',x:84,y:86,r:-8},{t:'buds',x:58,y:90,r:8}] },
+];
+
+const AUTO = 9000;
+/* timeline (ms, ×k): leave starts at 0, next slide enters at SWAP, old slide cleared at CLEAR, parallax re-enabled at SETTLE */
+const T = { SWAP:600, CLEAR:1600, SETTLE:3200 };
+
+const $ = (s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const stage=$('#stage'), host=$('#slides'), rail=$('#rail');
+let k=1, index=0, busy=false, settled=false;
+
+/* ---------- build ---------- */
+function slideHTML(s){
+  const strips = Array.from({length:7},(_,i)=>`<i class="st" style="--i:${i};--o:${Math.abs(3-i)}"></i>`).join('');
+  const ghost = (s.ghost+' — ').repeat(4);
+  const specs = s.specs.map((c,i)=>`
+    <div class="chip-pos" data-layer="chip ${i+1}" style="--x:${c.x}%;--y:${c.y}%;--mx:${c.mx}%;--my:${c.my}%;--i:${i}">
+      <i class="wire"></i><div class="chip"><small>${c.k}</small><strong>${c.v}</strong></div>
+    </div>`).join('');
+  const acc = s.acc.map((a,i)=>`
+    <div class="acc-pos" data-layer="acc: ${a.t}" style="--x:${a.x}%;--y:${a.y}%">
+      <div class="acc acc-${a.t}" style="--r:${a.r}deg;--i:${i}"><div class="art" style="--ad:-${i*1.7}s"></div></div>
+    </div>`).join('');
+  return `
+  <section class="slide" data-trans="${s.trans}" data-chrome="${s.chrome}">
+    <div class="bg" data-layer="bg plate · ${s.trans}"><div class="fill"></div><div class="strips">${strips}</div></div>
+    <div class="grid" data-layer="grid"></div>
+    <div class="ghost" data-layer="ghost word" data-depth="-26"><span class="gw">${ghost}${ghost}</span></div>
+
+    <div class="rig-pos" data-depth="16">
+      <div class="shadow" data-layer="shadow"></div>
+      <div class="rig" data-layer="laptop rig">
+        <div class="float"><div class="cam">
+          <div class="deck" data-layer="deck"><div class="keys"></div><div class="pad"></div><i class="lip"></i></div>
+          <div class="lid">
+            <div class="face front" data-layer="lid front">
+              <div class="scr" data-layer="screen">
+                <div class="scr-top"><i></i><i></i><i></i></div>
+                <div class="scr-title">${s.name[0]}<br>${s.name[1]}</div>
+                <div class="scr-cards"><b style="--i:0"></b><b style="--i:1"></b><b style="--i:2"></b></div>
+              </div>
+              <div class="glare"></div>
+            </div>
+            <div class="face back" data-layer="lid back"></div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="chips" data-depth="26">${specs}</div>
+    <div class="accs" data-depth="38">${acc}</div>
+
+    <div class="copy" data-layer="copy" data-depth="6">
+      <div class="eyebrow"><b></b>Laptops / <em>${s.cat}</em></div>
+      <h1 class="title"><span class="mask"><span class="ln" style="--i:0">${s.name[0]}</span></span><span class="mask"><span class="ln" style="--i:1">${s.name[1]}</span></span></h1>
+      <p class="desc">${s.desc}</p>
+      <div class="buy">
+        <div class="price"><small>From</small><strong>${s.price}</strong></div>
+        <a class="cta" href="#">Shop ${s.cat}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </div>
+    </div>
+  </section>`;
+}
+
+host.innerHTML = SLIDES.map(slideHTML).join('');
+const els = $$('.slide', host);
+els.forEach((el,i)=>{ for(const [n,v] of Object.entries(SLIDES[i].theme)) el.style.setProperty('--'+n, v); });
+
+rail.innerHTML = SLIDES.map((s,i)=>`<li><button data-go="${i}"><span class="bar"><i></i></span><span class="n">${String(i+1).padStart(2,'0')}</span><span class="t">${s.cat}</span></button></li>`).join('');
+$('#tot').textContent = '/ ' + String(SLIDES.length).padStart(2,'0');
+$('#cur').innerHTML = SLIDES.map((_,i)=>String(i+1).padStart(2,'0')).join('<br>');
+stage.style.setProperty('--auto', AUTO+'ms');
+
+/* chip fly-out vectors + wires, measured from real layout */
+function layout(){
+  els.forEach(el=>{
+    const rp = $(".rig-pos", el);
+    const r = rp.getBoundingClientRect();
+    $$('.chip-pos', el).forEach(cp=>{
+      const c = cp.getBoundingClientRect();
+      const dx = r.left - c.left, dy = r.top - c.top, d = Math.hypot(dx,dy);
+      cp.style.setProperty('--fx', dx+'px'); cp.style.setProperty('--fy', dy+'px');
+      cp.style.setProperty('--ang', Math.atan2(dy,dx)+'rad');
+      cp.style.setProperty('--len', Math.min(d*.32, 120)+'px');
+    });
+  });
+}
+
+/* ---------- engine ---------- */
+function setChrome(i){
+  stage.dataset.chrome = SLIDES[i].chrome;
+  stage.style.setProperty('--sweep', SLIDES[i].theme.accent);
+  $('#cur').style.transform = `translateY(${-i}em)`;
+  $$('li', rail).forEach((li,j)=>{ li.classList.toggle('on', j===i); });
+  // restart autoplay bar
+  const bar = $$('.bar i', rail)[i]; bar.style.animation='none'; bar.offsetWidth; bar.style.animation='';
+}
+
+const wait = ms => new Promise(r=>setTimeout(r, ms*k));
+
+async function go(to, dir){
+  to = (to + SLIDES.length) % SLIDES.length;
+  if (busy || to===index) return;
+  busy = true; settled = false; resetParallax();
+  dir = dir ?? (to > index ? 1 : -1);
+  stage.style.setProperty('--dir', dir); stage.dataset.dir = dir;
+
+  const cur = els[index], nxt = els[to];
+  cur.classList.remove('enter','first'); cur.classList.add('leave'); cur.style.zIndex = 1;
+  stage.classList.remove('sweeping'); stage.offsetWidth; stage.classList.add('sweeping');
+
+  await wait(T.SWAP);
+  index = to; setChrome(to);
+  nxt.style.zIndex = 2; nxt.classList.add('is-active','enter');
+
+  await wait(T.CLEAR - T.SWAP);
+  cur.classList.remove('is-active','leave'); cur.style.zIndex = '';
+  stage.classList.remove('sweeping');
+  busy = false;
+
+  await wait(T.SETTLE - T.CLEAR);
+  if (index===to && !busy) settled = true;
+}
+
+/* ---------- parallax (self-stopping rAF, gated by `settled`) ---------- */
+let tx=0,ty=0,cx=0,cy=0,raf=0;
+function resetParallax(){ tx=ty=cx=cy=0; $$('[data-depth]').forEach(n=>n.style.translate=''); }
+function tick(){
+  raf=0; if(!settled) return;
+  cx += (tx-cx)*.08; cy += (ty-cy)*.08;
+  $$('[data-depth]', els[index]).forEach(n=>{ const d=+n.dataset.depth; n.style.translate=`${cx*d}px ${cy*d}px`; });
+  if (Math.abs(tx-cx)>.001 || Math.abs(ty-cy)>.001) raf=requestAnimationFrame(tick);
+}
+const kick=()=>{ if(!raf) raf=requestAnimationFrame(tick); };
+stage.addEventListener('pointermove',e=>{ tx=e.clientX/innerWidth-.5; ty=e.clientY/innerHeight-.5; kick(); });
+
+/* ---------- controls ---------- */
+$('#next').onclick=()=>go(index+1, 1);
+$('#prev').onclick=()=>go(index-1,-1);
+rail.addEventListener('click',e=>{ const b=e.target.closest('[data-go]'); if(b) go(+b.dataset.go); });
+rail.addEventListener('animationend',e=>{ if(e.animationName==='prog') go(index+1, 1); });
+rail.addEventListener('pointerenter',()=>stage.classList.add('paused'));
+rail.addEventListener('pointerleave',()=>stage.classList.remove('paused'));
+addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight') go(index+1, 1);
+  else if(e.key==='ArrowLeft') go(index-1,-1);
+  else if(e.key.toLowerCase()==='l') document.body.classList.toggle('layers');
+  else if(e.key.toLowerCase()==='s'){ k = k===1 ? 4 : 1; document.documentElement.style.setProperty('--k', k); }
+  else if(e.key===' '){ e.preventDefault(); stage.classList.toggle('paused'); }
+});
+let sx=null; stage.addEventListener('pointerdown',e=>sx=e.clientX);
+stage.addEventListener('pointerup',e=>{ if(sx!==null && Math.abs(e.clientX-sx)>60) go(index+(e.clientX<sx?1:-1), e.clientX<sx?1:-1); sx=null; });
+addEventListener('resize', layout);
+
+/* ---------- boot (supports #s2 deep link) ---------- */
+const m = location.hash.match(/^#s(\d+)$/); if(m) index = Math.min(Math.max(+m[1]-1,0), SLIDES.length-1);
+layout();
+setChrome(index);
+els[index].classList.add('is-active','enter','first');
+setTimeout(()=>{ settled=true; }, T.SETTLE - T.SWAP);
+</script>
+</body>
+</html>

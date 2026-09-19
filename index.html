@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#000000">
+<meta name="color-scheme" content="dark">
+<title>Laptop Store Slider</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="img/nightforge-bg-tall.webp" media="(max-aspect-ratio:4/5)" fetchpriority="high">
+<link rel="preload" as="image" href="img/nightforge-bg-wide.webp" media="(min-aspect-ratio:4/5)" fetchpriority="high">
+<style>
+/* ============================================================
+   LAPTOP STORE — v3 "Teardown Dive" (built for Reels)
+   Loop per slide: fly-in spin → lid open + boot flash → EXPLODED VIEW
+   → snap back (impact) → camera DIVES INTO THE SCREEN → next laptop.
+   Keys: ← → skip · Space pause · S slow-mo · R 9:16 reel frame · L layer map
+   Touch: swipe left/right, tap right 70% forward, tap left 30% back.
+
+   Every part is a photograph out of Gemini Studio, keyed off a flat magenta (or green)
+   background by _gen/*.py: lid, bezel frame, keycaps, deck, board, battery, bottom, the
+   wallpaper on the screen and the room behind it.  See _gen/build-jobs.mjs for the prompts.
+   ============================================================ */
+@property --ax {syntax:'<angle>';inherits:true;initial-value:-16deg}
+@property --ay {syntax:'<angle>';inherits:true;initial-value:-24deg}
+@property --lid{syntax:'<angle>';inherits:true;initial-value:-88deg}
+/* --e inherits so a plate's children (its cast shadow, its shading) can read the explode amount */
+@property --e  {syntax:'<number>';inherits:true;initial-value:0}
+
+:root{--sans:"Space Grotesk",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,Consolas,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#000;overflow:hidden;overscroll-behavior:none}
+body{position:fixed;inset:0;display:grid;place-items:center;font-family:var(--sans);-webkit-font-smoothing:antialiased;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+img{-webkit-user-drag:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:inherit;text-decoration:none}
+
+.stage{position:relative;width:100vw;height:100vh;height:100dvh;overflow:hidden;container-type:size;background:#000;user-select:none;
+  --c:#fff;--c-dim:rgba(255,255,255,.55);--c-line:rgba(255,255,255,.2);
+  /* phones are taller than 9:16, so Instagram centre-crops a screen recording. Keep the
+     chrome and the buy block inside the band that survives that crop. */
+  --crop:max(0px,calc((100cqh - 100cqw*16/9)/2));
+  --pad-t:max(12px,calc(var(--crop) + env(safe-area-inset-top,0px) + 10px));
+  --pad-b:max(12px,calc(var(--crop) + env(safe-area-inset-bottom,0px) + 10px))}
+.stage[data-chrome="dark"]{--c:#0d0f13;--c-dim:rgba(13,15,19,.55);--c-line:rgba(13,15,19,.16)}
+.reel .stage{width:min(100vw,calc(100dvh*9/16));height:min(100dvh,calc(100vw*16/9))}
+
+/* ---------- geometry per orientation ---------- */
+.slide{position:absolute;inset:0;visibility:hidden;color:var(--ink);
+  --W:min(38cqw,64cqh);--H:calc(var(--W)*.725);--ry:62%;--ny:22%;--tagfs:calc(var(--W)*.045);--gap:.36}
+.slide.on{visibility:visible}
+@container (max-aspect-ratio:4/5){
+  /* lift the whole composition by most of the crop so the buy block is not pushed into the laptop */
+  .slide{--W:74cqw;--ry:calc(53% - var(--crop)*.5);--ny:calc(25% - var(--crop)*.35);--tagfs:calc(var(--W)*.06);--gap:.4}
+  /* portrait: exploded stack slides left, every callout goes to the right-hand column */
+  .slide .anc.L{left:100%}
+  .slide .anc .lead{left:0;right:auto;width:calc(var(--W)*.05);transform-origin:0 50%}
+  .slide .anc .tag-in{left:calc(var(--W)*.05);right:auto}
+}
+
+/* L1 bg */
+.bg{position:absolute;inset:0;background:
+  radial-gradient(ellipse 60% 45% at 50% calc(var(--ry) - 8%),var(--bg2),transparent 75%),
+  linear-gradient(180deg,var(--bg),var(--bg3))}
+.bg .flat{position:absolute;inset:0;background:var(--flat,var(--bg))}
+.bgi{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform-origin:50% 60%;animation:kb 16s ease-out both}
+@keyframes kb{from{transform:scale(1.12)}to{transform:scale(1)}}
+.world{position:absolute;inset:0}
+
+/* L2 giant name (sits BEHIND the laptop) */
+.name{position:absolute;left:0;right:0;top:var(--ny);translate:0 -50%;text-align:center;white-space:nowrap;
+  font-weight:700;line-height:.82;letter-spacing:-.06em;text-transform:uppercase}
+.name .nm{display:inline-block}
+.name .ch{display:inline-block;opacity:0}
+.name .n2{margin-left:.14em;color:var(--accent)}
+
+/* L3 light: god-rays + bloom */
+.glow{position:absolute;left:50%;top:calc(var(--ry) - var(--H)*.45);width:0;height:0}
+.rays{position:absolute;left:-75cqmax;top:-75cqmax;width:150cqmax;height:150cqmax;opacity:0;
+  -webkit-mask:radial-gradient(closest-side,#000 4%,transparent 62%);mask:radial-gradient(closest-side,#000 4%,transparent 62%)}
+.rays i{position:absolute;inset:0;background:repeating-conic-gradient(from 0deg,var(--ray) 0deg 2deg,transparent 2deg 11deg);animation:spin 90s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.bloom{position:absolute;left:calc(var(--W)*-.95);top:calc(var(--W)*-.6);width:calc(var(--W)*1.9);height:calc(var(--W)*1.2);
+  border-radius:50%;opacity:0;background:radial-gradient(closest-side,var(--bloom),transparent)}
+
+/* L4 laptop rig: rig-pos > floor + rig(arrive) > float(bob) > lift(explode frame) > cam(3D angle) */
+.rig-pos{position:absolute;left:50%;top:var(--ry);width:0;height:0;perspective:2400px}
+.floor{position:absolute;left:0;top:calc(var(--W)*.25)}
+.shadow,.wave{position:absolute;left:calc(var(--W)*-.65);top:calc(var(--W)*-.08);width:calc(var(--W)*1.3);height:calc(var(--W)*.16);border-radius:50%}
+/* ambient pool + the hard little core right under the chassis: one blob never reads as contact */
+.shadow{background:radial-gradient(closest-side,var(--shade),transparent 72%);filter:blur(8px);opacity:0}
+.shadow.core{left:calc(var(--W)*-.48);top:calc(var(--W)*-.035);width:calc(var(--W)*.96);height:calc(var(--W)*.075);
+  background:radial-gradient(closest-side,var(--shade),transparent 82%);filter:blur(3px)}
+.wave{box-shadow:0 0 0 2px var(--accent),0 0 30px 4px var(--accent);opacity:0}
+/* the lit screen bouncing off the floor — the single strongest "this is a real room" cue */
+.refl{position:absolute;left:calc(var(--W)*-.44);top:calc(var(--W)*-.02);width:calc(var(--W)*.88);height:calc(var(--W)*.42);
+  overflow:hidden;opacity:0;pointer-events:none;
+  -webkit-mask:linear-gradient(180deg,#000,rgba(0,0,0,.35) 38%,transparent 78%);mask:linear-gradient(180deg,#000,rgba(0,0,0,.35) 38%,transparent 78%)}
+.refl i{position:absolute;inset:0;transform:scaleY(-1);background:var(--reflsrc) 50% 0/100% 100% no-repeat;
+  filter:blur(calc(var(--W)*.006)) saturate(1.25) brightness(.85)}
+.rig,.float,.lift,.cam,.base,.plate,.kb,.lid,.anc{transform-style:preserve-3d}
+.rig{position:absolute;opacity:0}
+.float{animation:bob 6s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(calc(var(--W)*-.018))}}
+.cam{position:absolute;left:calc(var(--W)*-.5);top:calc(var(--H)*-.8);width:var(--W);height:var(--H);
+  transform:rotateX(var(--ax)) rotateY(var(--ay))}
+
+/* base = stack of slabs, exploded along its normal */
+.base{position:absolute;left:0;top:100%;width:100%;height:calc(var(--W)*.7);transform-origin:50% 0;transform:rotateX(90deg)}
+.plate{position:absolute;inset:0;transform:translateZ(calc(var(--W)/700*var(--z0) - var(--e)*var(--n)*var(--W)*var(--gap)))}
+.slab{position:absolute;inset:0;border-radius:calc(var(--W)*.018) calc(var(--W)*.018) calc(var(--W)*.04) calc(var(--W)*.04);
+  background:linear-gradient(180deg,var(--shell2),var(--shell));box-shadow:inset 0 0 0 1px var(--edge)}
+.lip{position:absolute;left:1.5%;right:1.5%;top:100%;height:calc(var(--W)*.013);transform-origin:50% 0;transform:rotateX(-90deg);
+  background:linear-gradient(90deg,var(--edge),var(--shell2) 50%,var(--edge));border-radius:0 0 8px 8px}
+/* bottom chassis */
+.vents{position:absolute;left:18%;right:18%;top:12%;height:26%;border-radius:10px;
+  background:repeating-linear-gradient(90deg,var(--edge) 0 3px,transparent 3px 11px)}
+.foot{position:absolute;width:7%;height:5%;border-radius:9px;background:var(--edge);bottom:8%}
+.foot.l{left:6%}.foot.r{right:6%}
+/* battery */
+.batt{position:absolute;left:13%;right:13%;bottom:7%;height:38%;display:flex;gap:1.2%;padding:1.2%;border-radius:calc(var(--W)*.01);
+  background:#101216;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),0 0 calc(var(--W)*.03) var(--glowb)}
+.cell{flex:1;border-radius:calc(var(--W)*.006);position:relative;overflow:hidden;background:linear-gradient(180deg,#262a31,#16181d)}
+.cell i{position:absolute;left:0;right:0;bottom:0;height:0%;background:linear-gradient(0deg,var(--accent),transparent)}
+.batt b{position:absolute;left:50%;top:50%;translate:-50% -50%;font:700 calc(var(--W)*.05)/1 var(--mono);color:#fff;letter-spacing:-.04em;white-space:nowrap;opacity:.9}
+/* motherboard */
+.pcb{position:absolute;left:5%;right:5%;top:4%;height:54%;border-radius:calc(var(--W)*.01);background:var(--pcb);overflow:hidden;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
+.pcb svg{position:absolute;inset:0;width:100%;height:100%}
+.pcb .tr{fill:none;stroke:var(--trace);stroke-width:.35}
+.pcb .pulse{fill:none;stroke:var(--accent);stroke-width:.7;stroke-dasharray:3 40;animation:pulse 2.6s linear infinite}
+@keyframes pulse{to{stroke-dashoffset:-86}}
+.ic{position:absolute;border-radius:calc(var(--W)*.004);background:linear-gradient(135deg,#3a3d45,#15161a);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.ic.cpu{left:33%;top:26%;width:12%;height:36%}
+.ic.gpu{left:50%;top:22%;width:16%;height:44%;box-shadow:inset 0 0 0 1px var(--accent),0 0 calc(var(--W)*.02) var(--glowb)}
+.ic.ram{left:33%;top:72%;width:33%;height:10%}
+.ic.ssd{left:70%;top:70%;width:12%;height:14%}
+.fan{position:absolute;top:8%;width:21%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#0b0c0f 58%,#23262c 60%,#0b0c0f 71%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.fan.l{left:4%}.fan.r{right:4%}
+.fan i{position:absolute;inset:9%;border-radius:50%;background:repeating-conic-gradient(from 0deg,#2d3037 0deg 14deg,transparent 14deg 30deg);
+  -webkit-mask:radial-gradient(circle,transparent 22%,#000 23%);mask:radial-gradient(circle,transparent 22%,#000 23%);animation:spin 1.1s linear infinite}
+.pipe{position:absolute;height:3.2%;border-radius:9px;background:linear-gradient(180deg,#f0b58a,#9a5a32);top:34%}
+.pipe.a{left:20%;width:32%}.pipe.b{left:58%;width:23%;top:46%}
+/* top shell + keys */
+.well{position:absolute;left:7%;right:7%;top:8%;height:54%;border-radius:calc(var(--W)*.008);background:var(--edge)}
+.pad{position:absolute;left:33%;right:33%;top:67%;bottom:7%;border-radius:calc(var(--W)*.01);background:var(--shell);box-shadow:inset 0 0 0 1px var(--edge)}
+.grill{position:absolute;top:10%;width:4%;height:50%;background:radial-gradient(circle,var(--edge) 35%,transparent 40%) 0 0/100% 7%}
+.grill.l{left:1.5%}.grill.r{right:1.5%}
+.kb{position:absolute;left:var(--kbl,8%);right:var(--kbr,8%);top:var(--kbt,9.5%);height:var(--kbh,51%);display:grid;grid-template-columns:repeat(15,1fr);grid-template-rows:repeat(6,1fr);gap:calc(var(--W)*.004)}
+.key{border-radius:18%;background:var(--keycap);box-shadow:inset 0 calc(var(--W)*-.002) 0 rgba(0,0,0,.35),0 0 calc(var(--W)*.012) var(--kglow)}
+.key.space{grid-column:span 7}
+.rgb .key{animation:rgb 2.4s linear infinite;animation-delay:calc(var(--c)*-.09s)}
+@keyframes rgb{0%,100%{background:#ff3d3d;box-shadow:0 0 12px #ff3d3d}25%{background:#ffb13d;box-shadow:0 0 12px #ffb13d}50%{background:#3dff9e;box-shadow:0 0 12px #3dff9e}75%{background:#3d8bff;box-shadow:0 0 12px #3d8bff}}
+
+/* generated photo textures (Gemini Studio) — replace the CSS-drawn parts when a slide has tex */
+.tex{position:absolute;display:block;pointer-events:none;user-select:none}
+.tex.fill{inset:0;width:100%;height:100%}
+.tex.board{left:3%;width:94%;bottom:4%;height:auto}
+.tex.battery{left:14%;width:72%;bottom:7%;height:auto}
+/* the real keycaps, dropped onto the bare switches of the deck photo underneath */
+.tex.keys{left:var(--kbl);top:var(--kbt);width:calc(100% - var(--kbl) - var(--kbr));height:var(--kbh)}
+.l-back .tex{transform:scaleY(-1)}
+.has-tex .slab{background:none;box-shadow:none}
+.has-tex .kb{display:none}
+/* buried plates sit in their own shadow; opening the stack lets the light back in */
+.has-tex .p-bottom .tex{filter:brightness(calc(.74 + var(--e)*.26))}
+.has-tex .p-batt   .tex{filter:brightness(calc(.80 + var(--e)*.20))}
+.has-tex .p-board  .tex{filter:brightness(calc(.86 + var(--e)*.14))}
+.has-tex .p-top    .tex{filter:brightness(calc(.93 + var(--e)*.07))}
+/* …and each one drops a shadow onto the plate below, exactly one explode-gap down */
+.psh{position:absolute;left:3%;right:3%;top:8%;height:94%;border-radius:50%/34%;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 46%,var(--shade),transparent 70%);
+  opacity:calc(var(--e)*var(--psho,1));
+  transform:translateZ(calc(var(--e)*var(--W)*var(--gap)*-1)) translateY(calc(var(--e)*var(--W)*.03)) scale(calc(1 + var(--e)*.05))}
+/* backlight bleeding out from under the caps */
+.kglow{position:absolute;left:var(--kbl);top:var(--kbt);width:calc(100% - var(--kbl) - var(--kbr));height:var(--kbh);
+  border-radius:calc(var(--W)*.012);pointer-events:none;opacity:.32;filter:blur(calc(var(--W)*.014));
+  background:radial-gradient(ellipse at 50% 50%,var(--accent),transparent 72%)}
+.rgb .kglow{opacity:.45;background:linear-gradient(90deg,#ff2f2f,#ff9b2f,#6dff5a,#35c8ff,#9b5cff,#ff2f2f);background-size:200% 100%;
+  animation:rgbslide 6s linear infinite}
+@keyframes rgbslide{to{background-position:-200% 0}}
+.scr .art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.scr .art~.au{display:none}
+.scr .art~.s-metric{top:auto;bottom:34%;font-size:5.5em;text-shadow:0 .05em .4em rgba(0,0,0,.6)}
+.scr .art~.eq{height:16%;opacity:.8}
+/* scrim both ends: a bright wallpaper swallowed the header row before this */
+.scr .art~.shade{position:absolute;inset:0;
+  background:linear-gradient(0deg,rgba(0,0,0,.78),rgba(0,0,0,.12) 52%,transparent 66%),linear-gradient(180deg,rgba(0,0,0,.5),transparent 18%)}
+.scr .art~.s-top{text-shadow:0 1px 5px rgba(0,0,0,.85)}
+.p-top .tex~.lip,.p-bottom .tex~.lip{left:3%;right:3%}
+
+/* lid */
+.lid{position:absolute;inset:0;transform-origin:50% 100%;transform:rotateX(var(--lid))}
+.l-back,.l-panel,.l-glass{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  border-radius:calc(var(--W)*.022) calc(var(--W)*.022) calc(var(--W)*.008) calc(var(--W)*.008)}
+.l-back{transform:rotateY(180deg) translateZ(calc(var(--W)*.005));background:linear-gradient(135deg,var(--shell2),var(--shell) 65%);box-shadow:inset 0 0 0 1px var(--edge)}
+.l-back::after{content:"";position:absolute;left:50%;top:50%;width:10%;aspect-ratio:1;translate:-50% -50%;border-radius:28%;border:calc(var(--W)*.005) solid var(--accent);box-shadow:0 0 20px var(--accent)}
+.l-panel{background:var(--bezel);
+  box-shadow:inset 0 0 0 1px var(--edge),inset 0 1px 0 rgba(255,255,255,.14),inset 0 -1px 0 rgba(255,255,255,.05)}
+/* with a photographed bezel the panel is just a backdrop: the screen sits in the frame's hole
+   and the frame itself paints on top, so its inner rim catches the edge of the picture */
+.has-tex .l-panel{background:none;box-shadow:none;padding:0}
+.bez{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.has-tex .l-panel>.scr{position:absolute;left:var(--bzl);right:var(--bzr);top:var(--bzt);bottom:var(--bzb);width:auto;height:auto}
+.l-glass{transform:translateZ(calc(1px + var(--e)*var(--W)*.16));pointer-events:none;overflow:hidden;
+  background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.1) 44%,transparent 58%);
+  box-shadow:inset 0 0 0 calc(1px + var(--e)*1.5px) rgba(255,255,255,calc(.04 + var(--e)*.5))}
+/* a soft highlight crawling across the panel — glass you can see is glass */
+.l-glass::after{content:"";position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(102deg,transparent 40%,rgba(255,255,255,.16) 47%,rgba(255,255,255,.04) 53%,transparent 61%);
+  background-size:300% 100%;animation:sweep 11s ease-in-out infinite}
+@keyframes sweep{0%,100%{background-position:140% 0}50%{background-position:-70% 0}}
+
+/* L5 screen */
+.scr{position:relative;width:100%;height:100%;overflow:hidden;border-radius:calc(var(--W)*.006);background:#040507;color:#fff;
+  clip-path:inset(49.6% 50% 49.6% 50%);font-size:calc(var(--W)*.02)}
+.au{position:absolute;width:75%;aspect-ratio:1;border-radius:50%;filter:blur(calc(var(--W)*.05))}
+.au.a{left:-15%;top:-35%;background:var(--scr1);animation:drift 7s ease-in-out infinite}
+.au.b{right:-20%;bottom:-45%;background:var(--scr2);animation:drift 9s ease-in-out infinite reverse}
+@keyframes drift{50%{transform:translate(18%,12%) scale(1.15)}}
+.s-top{position:absolute;left:3.5%;right:3.5%;top:5%;display:flex;justify-content:space-between;font:700 .8em/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;opacity:.75}
+.s-metric{position:absolute;left:3.5%;top:17%;font-weight:700;font-size:7.5em;line-height:.85;letter-spacing:-.06em}
+.s-metric small{display:block;font:700 .16em/1.4 var(--mono);letter-spacing:.2em;opacity:.8;margin-top:.6em}
+.eq{position:absolute;left:3.5%;right:3.5%;bottom:6%;height:24%;display:flex;align-items:flex-end;gap:1%}
+.eq i{flex:1;height:30%;border-radius:2px 2px 0 0;background:linear-gradient(0deg,rgba(255,255,255,.15),rgba(255,255,255,.75));animation:eq 1.2s ease-in-out infinite alternate;animation-delay:var(--d)}
+@keyframes eq{to{height:100%}}
+.portal{position:absolute;inset:-2px;opacity:0}
+
+/* L6 exploded-view callouts (billboarded inside the 3D stack) */
+.anc{position:absolute;top:55%;width:0;height:0}
+.anc.R{left:100%}.anc.L{left:0}
+.lid .anc{top:30%}
+.tag{position:absolute;left:0;top:0;transform-origin:0 0;transform:rotateX(-90deg) rotateY(calc(-1*var(--ay))) rotateX(calc(-1*var(--ax)))}
+.lid .tag{transform:rotateX(calc(-1*var(--lid))) rotateY(calc(-1*var(--ay))) rotateX(calc(-1*var(--ax)))}
+.lead{position:absolute;top:0;height:2px;width:calc(var(--W)*.09);background:var(--accent);box-shadow:0 0 10px var(--accent);opacity:0}
+.R .lead{left:0;transform-origin:0 50%}.L .lead{right:0;transform-origin:100% 50%}
+.tag-in{position:absolute;top:0;translate:0 -50%;white-space:nowrap;opacity:0;font-size:var(--tagfs);padding:.55em .8em .6em;border-radius:.6em;
+  background:var(--tagbg);box-shadow:inset 0 0 0 1px var(--line2)}
+.R .tag-in{left:calc(var(--W)*.09)}.L .tag-in{right:calc(var(--W)*.09)}
+.tag-in small{display:block;font:700 .5em/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:.45em}
+.tag-in strong{font-size:1.25em;font-weight:700;letter-spacing:-.03em;color:var(--ink)}
+
+/* L7 buy block */
+.info{position:absolute;left:5cqw;bottom:calc(6cqh + var(--crop));display:flex;align-items:flex-end;gap:2.4cqw}
+.info>*{opacity:0}
+.cat{font:700 max(11px,.8cqw)/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;padding:.9em 1.2em;border-radius:99px;box-shadow:inset 0 0 0 1px var(--accent);color:var(--accent)}
+.price small{display:block;font:700 max(10px,.7cqw)/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:.5em}
+.odo{display:flex;align-items:center;font-size:max(30px,3.6cqw);font-weight:700;letter-spacing:-.04em;line-height:1}
+.dg{display:inline-block;height:1.1em;overflow:hidden;-webkit-mask:linear-gradient(transparent,#000 22%,#000 78%,transparent);mask:linear-gradient(transparent,#000 22%,#000 78%,transparent)}
+.dg .roll{display:block}
+.dg .roll span{display:block;height:1.1em;line-height:1.1em}
+.cta{display:inline-flex;align-items:center;gap:.6em;padding:1em 1.5em;border-radius:99px;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:max(14px,1cqw)}
+.cta svg{width:1.1em;height:1.1em}
+@container (max-aspect-ratio:4/5){
+  .info{left:0;right:0;bottom:calc(5cqh + var(--crop)*.6);flex-direction:column;align-items:center;gap:2.4cqh;text-align:center}
+  .cat{font-size:3cqw}.price small{font-size:2.6cqw}.odo{font-size:13cqw}.cta{font-size:4cqw}
+}
+
+/* ---------- stage chrome ---------- */
+.fx{position:absolute;inset:0;width:100%;height:100%;z-index:12;pointer-events:none}
+.warp{position:absolute;inset:-30%;z-index:13;pointer-events:none;opacity:0;
+  background:repeating-conic-gradient(from 0deg,transparent 0deg 4deg,var(--warp,#fff) 4deg 4.35deg);
+  -webkit-mask:radial-gradient(circle,transparent 14%,#000 60%);mask:radial-gradient(circle,transparent 14%,#000 60%)}
+.flash{position:absolute;inset:0;z-index:14;pointer-events:none;opacity:0;background:var(--flash,#fff)}
+.grain{position:absolute;inset:-50%;z-index:30;pointer-events:none;opacity:.07;animation:grain .5s steps(4) infinite;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+@keyframes grain{25%{transform:translate(-4%,3%)}50%{transform:translate(3%,-5%)}75%{transform:translate(-2%,-3%)}}
+.vign{position:absolute;inset:0;z-index:11;pointer-events:none;background:radial-gradient(ellipse 80% 70% at 50% 50%,transparent 55%,rgba(0,0,0,.35))}
+.stage[data-chrome="dark"] .vign{background:radial-gradient(ellipse 80% 70% at 50% 50%,transparent 60%,rgba(0,0,0,.08))}
+
+.segs{position:absolute;left:3cqw;right:3cqw;top:var(--pad-t);z-index:20;display:flex;gap:6px}
+.seg{flex:1;height:3px;border-radius:3px;background:var(--c-line);overflow:hidden;cursor:pointer}
+.seg i{display:block;height:100%;background:var(--c);transform-origin:0 50%;transform:scaleX(0)}
+.top{position:absolute;left:3cqw;right:3cqw;top:calc(var(--pad-t) + 18px);z-index:20;display:flex;justify-content:space-between;align-items:center;color:var(--c);transition:color .5s}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:max(16px,1.2cqw);letter-spacing:-.02em}
+.brand i{width:1.2em;height:.78em;border:2px solid currentColor;border-radius:3px;position:relative}
+.brand i::after{content:"";position:absolute;left:-5px;right:-5px;bottom:-6px;height:2px;background:currentColor;border-radius:2px}
+.count{font:700 max(12px,.8cqw)/1 var(--mono);letter-spacing:.1em}
+.count .dim{color:var(--c-dim)}
+.hint{position:absolute;right:3cqw;bottom:calc(6cqh + var(--crop));z-index:20;font:500 10px/1.7 var(--mono);letter-spacing:.06em;color:var(--c-dim);text-align:right}
+@container (max-aspect-ratio:4/5){ .hint{display:none} .brand{font-size:4.4cqw} .count{font-size:3.2cqw} .segs{gap:4px} }
+.reel .hint{display:none}
+
+/* layer map (L) */
+.layers [data-layer]{outline:1px dashed #ff00d4;outline-offset:-1px}
+</style>
+</head>
+<body>
+<main class="stage" id="stage">
+  <div id="slides"></div>
+  <div class="vign"></div>
+  <canvas class="fx" id="fx"></canvas>
+  <div class="warp" id="warp"></div>
+  <div class="flash" id="flash"></div>
+  <div class="segs" id="segs"></div>
+  <div class="top"><div class="brand"><i></i>CIRCUIT</div><div class="count"><span id="cur">01</span> <span class="dim">/ 04</span></div></div>
+  <div class="hint">← → skip · Space pause · S slow-mo<br>R reel 9:16 · L layers</div>
+  <div class="grain"></div>
+  <i id="clock" style="position:absolute;width:0;height:0"></i>
+</main>
+
+<script>
+/* ============================================================
+   DATA — placeholder models/specs/prices (swap freely)
+   ============================================================ */
+const SLIDES = [
+  { id:'nightforge', tex:true, bez:[2,2.3,7.3,11.1], kb:[11,10.7,20.8,43], cat:'Gaming laptop', name:['Nightforge','16'], price:'$2,499', rgb:true, screen:['240','FPS · ULTRA'],
+    parts:{lid:['Display','240 Hz QHD+'],keys:['Keyboard','Per-key RGB'],top:['Chassis','CNC aluminium'],board:['Graphics','16 GB GPU'],batt:['Battery','99 Wh'],bottom:['Cooling','Vapor chamber']},
+    theme:{flat:'#4a1615',bg:'#050608',bg2:'#3d0b12',bg3:'#0b0508',ink:'#f6f6f8',muted:'#9a9ca8',accent:'#ff3d3d','on-accent':'#fff',
+      shell:'#15171c',shell2:'#262931',edge:'#08090b',keycap:'#1e2027',bezel:'#070809',scr1:'#ff3d3d',scr2:'#6d0f3a',
+      pcb:'#0b0c10',trace:'rgba(255,61,61,.35)',kglow:'rgba(255,61,61,.5)',glowb:'rgba(255,61,61,.45)',ray:'rgba(255,61,61,.09)',bloom:'rgba(255,40,40,.55)',
+      shade:'rgba(0,0,0,.95)',line2:'rgba(255,255,255,.14)',tagbg:'rgba(12,13,17,.82)',reflop:'.34',psho:'1',chrome:'light'} },
+  { id:'aero', tex:true, bez:[1.9,2,6.4,10.8], kb:[5.7,5.9,10,47], cat:'Ultrabook', name:['Aero','Air 14'], price:'$1,299', screen:['22','HOURS · BATTERY'],
+    parts:{lid:['Panel','2.8K OLED'],keys:['Keys','Backlit, silent'],top:['Weight','1.08 kg'],board:['Chip','12-core NPU'],batt:['Battery','22 h'],bottom:['Profile','11.9 mm']},
+    theme:{flat:'#d4e3ef',bg:'#e9ecf1',bg2:'#ffffff',bg3:'#d5dae3',ink:'#0e1116',muted:'#5b6170',accent:'#2f5bff','on-accent':'#fff',
+      shell:'#b9bec7',shell2:'#e4e7ec',edge:'#8e949f',keycap:'#aab0ba',bezel:'#0d0f13',scr1:'#2f5bff',scr2:'#8fd3ff',
+      pcb:'#0f1d36',trace:'rgba(120,170,255,.5)',kglow:'rgba(47,91,255,0)',glowb:'rgba(47,91,255,.35)',ray:'rgba(47,91,255,.06)',bloom:'rgba(47,91,255,.28)',
+      shade:'rgba(40,50,75,.4)',line2:'rgba(14,17,22,.1)',tagbg:'rgba(255,255,255,.85)',reflop:'.2',psho:'.8',chrome:'dark'} },
+  { id:'studio', tex:true, bez:[2,2.2,5.4,6.3], kb:[6.7,6.7,10,50], cat:'Creator', name:['Studio','Pro 16'], price:'$3,199', screen:['8K','TIMELINE · REALTIME'],
+    parts:{lid:['Display','4K Mini-LED'],keys:['Input','Pen ready'],top:['Colour','100% DCI-P3'],board:['Memory','64 GB'],batt:['Battery','90 Wh'],bottom:['Ports','2× Thunderbolt']},
+    theme:{flat:'#5e3b42',bg:'#0f0b16',bg2:'#4a2a0e',bg3:'#170d22',ink:'#fbf5ea',muted:'#a99db6',accent:'#ffb23f','on-accent':'#1a1206',
+      shell:'#26242b',shell2:'#3b3842',edge:'#111014',keycap:'#211f25',bezel:'#070609',scr1:'#ffb23f',scr2:'#7a3cff',
+      pcb:'#150f1d',trace:'rgba(255,178,63,.38)',kglow:'rgba(255,178,63,.35)',glowb:'rgba(255,178,63,.4)',ray:'rgba(255,178,63,.08)',bloom:'rgba(255,160,40,.45)',
+      shade:'rgba(0,0,0,.9)',line2:'rgba(255,255,255,.14)',tagbg:'rgba(18,14,24,.82)',reflop:'.3',psho:'1',chrome:'light'} },
+  { id:'ledger', tex:true, bez:[2.4,2.6,8,12.2], kb:[8.7,8.8,11.3,45], cat:'Business', name:['Ledger','X14'], price:'$1,749', screen:['5G','ALWAYS CONNECTED'],
+    parts:{lid:['Login','IR face unlock'],keys:['Keys','Spill resistant'],top:['Rugged','MIL-STD tested'],board:['Security','vPro-class'],batt:['Battery','18 h'],bottom:['Network','5G + Wi-Fi 7']},
+    theme:{flat:'#c3ccbc',bg:'#dfe4d8',bg2:'#f6f8f1',bg3:'#c6cdb9',ink:'#0e1a15',muted:'#56645c',accent:'#0d6b50','on-accent':'#fff',
+      shell:'#2c3135',shell2:'#454b50',edge:'#171a1d',keycap:'#23272b',bezel:'#0b0d0f',scr1:'#12a37a',scr2:'#1d3c8c',
+      pcb:'#0c2a21',trace:'rgba(40,220,160,.4)',kglow:'rgba(18,163,122,0)',glowb:'rgba(13,107,80,.35)',ray:'rgba(13,107,80,.07)',bloom:'rgba(13,107,80,.25)',
+      shade:'rgba(25,35,25,.5)',line2:'rgba(14,26,21,.12)',tagbg:'rgba(255,255,255,.86)',reflop:'.13',psho:'.85',chrome:'dark'} },
+];
+const N = SLIDES.length, CYCLE = 10200;
+const EASE = { out:'cubic-bezier(.16,1,.3,1)', in:'cubic-bezier(.7,0,.84,0)', io:'cubic-bezier(.65,0,.35,1)', pop:'cubic-bezier(.34,1.56,.64,1)' };
+
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const stage=$('#stage'), host=$('#slides'), clock=$('#clock');
+
+/* ---------- build ---------- */
+const hashed=location.hash.match(/^#s(\d+)$/);
+const START=hashed?Math.min(Math.max(+hashed[1]-1,0),N-1):0;   // #s3 opens on the third laptop
+
+let seed=7; const rnd=()=>((seed=(seed*16807)%2147483647)/2147483647);
+function traces(){
+  let d='', p='';
+  for(let i=0;i<26;i++){
+    let x=rnd()*100, y=rnd()*50, s=`M${x.toFixed(1)} ${y.toFixed(1)}`;
+    for(let j=0;j<3;j++){ rnd()<.5 ? x=Math.min(100,Math.max(0,x+(rnd()-.5)*40)) : y=Math.min(50,Math.max(0,y+(rnd()-.5)*24)); s+=` L${x.toFixed(1)} ${y.toFixed(1)}`; }
+    d+=s+' '; if(i%3===0) p+=s+' ';
+  }
+  return `<svg viewBox="0 0 100 50" preserveAspectRatio="none"><path class="tr" d="${d}"/><path class="pulse" d="${p}"/></svg>`;
+}
+function keys(){
+  let h='';
+  for(let r=0;r<5;r++) for(let k=0;k<15;k++) h+=`<i class="key" style="--c:${k+r*.6}"></i>`;
+  for(let k=0;k<15;k++){ if(k===4){ h+=`<i class="key space" style="--c:${7+3}"></i>`; k+=6; } else h+=`<i class="key" style="--c:${k+3}"></i>`; }
+  return h;
+}
+const tag=(side,[k,v])=>`<div class="anc ${side}"><div class="tag"><i class="lead"></i><div class="tag-in"><small>${k}</small><strong class="v">${v}</strong></div></div></div>`;
+function odo(str){
+  return [...str].map(ch=>/\d/.test(ch)
+    ? `<span class="dg" data-d="${ch}"><span class="roll">${'01234567890123456789'.split('').map(n=>`<span>${n}</span>`).join('')}</span></span>`
+    : `<span>${ch}</span>`).join('');
+}
+function slideHTML(s,i){
+  // Slide 0 loads now; the rest carry their URLs in data-src until hydrate() is ready for them,
+  // so a phone spends its first second on one background instead of thirty-odd files.
+  const P=s.parts, T=!!s.tex, A=i?'data-src':'src', AS=i?'data-srcset':'srcset';
+  const img=(part,cls)=>`<img class="tex ${cls}" ${A}="img/${s.id}-${part}.webp" alt="" draggable="false" decoding="async">`;
+  const chars=t=>[...t].map(ch=>`<span class="ch">${ch===' '?'&nbsp;':ch}</span>`).join('');
+  return `<section class="slide${s.rgb?' rgb':''}${s.tex?' has-tex':''}" data-id="${s.id}">
+    <div class="bg" data-layer><picture>
+      <source ${AS}="img/${s.id}-bg-tall.webp" media="(max-aspect-ratio:4/5)">
+      <img class="bgi" ${A}="img/${s.id}-bg-wide.webp" alt="" decoding="async" fetchpriority="${i?'low':'high'}">
+    </picture><div class="flat"></div></div>
+    <div class="world">
+      <h2 class="name" data-layer><span class="nm"><span class="n1">${chars(s.name[0])}</span><span class="n2">${chars(s.name[1])}</span></span></h2>
+      <div class="glow"><div class="rays"><i></i></div><div class="bloom"></div></div>
+      <div class="rig-pos">
+        <div class="floor"><div class="shadow"></div><div class="shadow core"></div><div class="refl"><i></i></div><div class="wave"></div></div>
+        <div class="rig"><div class="float"><div class="lift"><div class="cam">
+          <div class="base">
+            <div class="plate p-bottom" data-layer style="--n:4;--z0:-15"><i class="psh"></i>${T?img('bottom','fill'):'<div class="slab"><div class="vents"></div><i class="foot l"></i><i class="foot r"></i></div>'}<i class="lip"></i>${tag('L',P.bottom)}</div>
+            <div class="plate p-batt" data-layer style="--n:3;--z0:-11"><i class="psh"></i>${T?img('battery','battery'):'<div class="batt">'+'<div class="cell"><i></i></div>'.repeat(4)+'<b>'+P.batt[1]+'</b></div>'}${tag('R',P.batt)}</div>
+            <div class="plate p-board" data-layer style="--n:2;--z0:-7"><i class="psh"></i>${T?img('board','board'):'<div class="pcb">'+traces()+'<i class="pipe a"></i><i class="pipe b"></i><i class="ic cpu"></i><i class="ic gpu"></i><i class="ic ram"></i><i class="ic ssd"></i></div><div class="fan l"><i></i></div><div class="fan r"><i></i></div>'}${tag('L',P.board)}</div>
+            <div class="plate p-top" data-layer style="--n:1;--z0:-1"><i class="psh"></i>${T?img('deck','fill'):'<div class="slab"><div class="well"></div><div class="pad"></div><i class="grill l"></i><i class="grill r"></i></div>'}<i class="lip"></i>${tag('R',P.top)}</div>
+            <div class="plate p-keys" data-layer style="--n:0;--z0:1${s.kb?`;--kbl:${s.kb[0]}%;--kbr:${s.kb[1]}%;--kbt:${s.kb[2]}%;--kbh:${s.kb[3]}%`:''}"><i class="psh"></i><i class="kglow"></i>${T?img('keys','keys'):`<div class="kb">${keys()}</div>`}${tag('L',P.keys)}</div>
+          </div>
+          <div class="lid">
+            <div class="l-back">${T?img('lid','fill'):''}</div>
+            <div class="l-panel" data-layer${s.bez?` style="--bzl:${s.bez[0]}%;--bzr:${s.bez[1]}%;--bzt:${s.bez[2]}%;--bzb:${s.bez[3]}%"`:''}><div class="scr">
+              ${T?`<img class="art" ${A}="img/${s.id}-screen.webp" alt="" decoding="async">`:''}<i class="au a"></i><i class="au b"></i>${T?'<i class="shade"></i>':''}
+              <div class="s-top"><span>${s.name.join(' ')}</span><span>● LIVE</span></div>
+              <div class="s-metric">${s.screen[0]}<small>${s.screen[1]}</small></div>
+              <div class="eq">${Array.from({length:32},()=>`<i style="--d:-${(rnd()*1.2).toFixed(2)}s"></i>`).join('')}</div>
+              <div class="portal"></div>
+            </div>${T?`<img class="bez" ${A}="img/${s.id}-bezel.webp" alt="" decoding="async">`:''}</div>
+            <div class="l-glass"></div>
+            ${tag('R',P.lid)}
+          </div>
+        </div></div></div></div>
+      </div>
+    </div>
+    <div class="info">
+      <span class="cat">${s.cat}</span>
+      <div class="price"><small>Starting at</small><div class="odo">${odo(s.price)}</div></div>
+      <a class="cta" href="#">Shop now<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+    </div>
+  </section>`;
+}
+host.innerHTML = SLIDES.map((sl,i)=>slideHTML(sl,i===START?0:1)).join('');
+const els = $$('.slide', host);
+els.forEach((el,i)=>{ for(const [k,v] of Object.entries(SLIDES[i].theme)) el.style.setProperty('--'+k, v); });
+
+/* ---------- image hydration ----------
+   Slide 0 is already loading from markup. The other three would decode in one burst and eat a
+   frame budget's worth of main thread right in the middle of slide 0's opening, so they go
+   through a queue: one image at a time, each awaiting its own decode before the next starts. */
+const reflOf = el => el.style.setProperty('--reflsrc', `url("img/${el.dataset.id}-screen.webp")`);
+function light(n){
+  if(n.dataset.srcset){ n.srcset = n.dataset.srcset; n.removeAttribute('data-srcset'); }
+  if(n.dataset.src){ n.src = n.dataset.src; n.removeAttribute('data-src'); }
+  return n.tagName==='IMG' ? (n.decode?.().catch(()=>{}) ?? Promise.resolve()) : Promise.resolve();
+}
+function hydrate(el){          // everything at once — only for the slide we are about to show
+  if(el.dataset.lit) return; el.dataset.lit='1'; reflOf(el);
+  $$('[data-srcset],[data-src]',el).forEach(light);
+}
+const idle = window.requestIdleCallback || (f=>setTimeout(f,120));
+function drip(){
+  const el = els.find(e=>!e.dataset.lit);
+  if(!el) return;
+  const n = $('[data-srcset],[data-src]', el);
+  if(!n){ el.dataset.lit='1'; reflOf(el); return drip(); }
+  light(n).then(()=>idle(drip));
+}
+reflOf(els[START]); els[START].dataset.lit='1';
+setTimeout(()=>idle(drip), 2600);   // after the first laptop has landed and opened
+$('#segs').innerHTML = SLIDES.map((_,i)=>`<div class="seg" data-go="${i}"><i></i></div>`).join('');
+const segs = $$('.seg i');
+const isPortrait = ()=>stage.clientHeight > stage.clientWidth*1.25;
+
+function fitNames(){
+  const portrait=isPortrait();
+  els.forEach(el=>{
+    const n=$('.name',el), nm=$('.nm',el);
+    n.style.fontSize='100px';
+    const target = stage.clientWidth*(portrait?.86:.84);
+    n.style.fontSize = Math.min(100*target/nm.offsetWidth, stage.clientHeight*(portrait?.16:.3))+'px';
+  });
+}
+
+/* ---------- timeline helpers (Web Animations → pausable, slow-mo-able, skippable) ---------- */
+let rate=1, paused=false, skipTo=null, diving=false, index=0;
+function A(el, kf, o={}){
+  const fast = skipTo!==null && !diving;
+  const a = el.animate(kf,{duration:fast?1:(o.d??600), delay:fast?0:(o.delay??0), easing:o.e??EASE.out, fill:'both'});
+  a.playbackRate = rate; if(paused) a.pause();
+  return a;
+}
+const sleep = ms => (skipTo!==null && !diving) ? Promise.resolve() : A(clock,[{opacity:0},{opacity:1}],{d:ms,e:'linear'}).finished.catch(()=>{});
+const cs = (el,p)=>getComputedStyle(el).getPropertyValue(p).trim();
+const finite = a => isFinite(a.effect.getComputedTiming().endTime);
+function finishAll(){ [...els[index].getAnimations({subtree:true}), ...clock.getAnimations()].filter(finite).forEach(a=>{ try{a.finish()}catch{} }); }
+
+function count(el, dur){
+  const txt=el.dataset.txt ??= el.textContent, m=txt.match(/\d+(\.\d+)?/); if(!m) return;
+  const target=+m[0], dec=m[1]?m[1].length-1:0, t0=performance.now();
+  const step=now=>{ if(paused) return requestAnimationFrame(step);
+    const t=Math.min(1,(now-t0)*rate/dur), v=target*(1-Math.pow(1-t,3));
+    el.textContent = txt.replace(m[0], v.toFixed(dec)); if(t<1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+
+/* ---------- particles ---------- */
+const cv=$('#fx'), ctx=cv.getContext('2d'); let parts=[], motes=[], pcol='#fff', additive=true, dpr=1;
+/* a phone is doing 3D, filters and a canvas at once — buy back the fill rate here, it is the
+   one layer nobody looks at directly */
+const PHONE = matchMedia('(pointer:coarse)').matches || innerWidth < 760;
+const MOTES = PHONE ? 34 : 70, BURST = PHONE ? .5 : 1;
+function sizeFx(){ dpr=Math.min(PHONE?1.5:2,devicePixelRatio||1); cv.width=stage.clientWidth*dpr; cv.height=stage.clientHeight*dpr;
+  motes=Array.from({length:MOTES},()=>({x:Math.random(),y:Math.random(),s:Math.random()*1.6+.4,v:Math.random()*.0006+.0002,p:Math.random()*6})); }
+function burst(x,y,n,spd=9,flat=false){
+  n=Math.round(n*BURST);
+  for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2, v=(Math.random()*.8+.2)*spd;
+    parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v*(flat?.25:1),life:1,s:Math.random()*2.4+.6,w:Math.random()<.25}); }
+}
+function fx(){
+  requestAnimationFrame(fx); if(paused) return;
+  const W=cv.width,H=cv.height; ctx.clearRect(0,0,W,H);
+  ctx.globalCompositeOperation = additive?'lighter':'source-over';
+  for(const m of motes){ m.y-=m.v*rate; m.p+=.02*rate; if(m.y<0){m.y=1;m.x=Math.random();}
+    ctx.globalAlpha=(.25+.25*Math.sin(m.p))*(additive?1:.6); ctx.fillStyle=pcol; ctx.beginPath(); ctx.arc(m.x*W,m.y*H,m.s*dpr,0,7); ctx.fill(); }
+  parts=parts.filter(p=>p.life>0);
+  for(const p of parts){ p.x+=p.vx*dpr*rate; p.y+=p.vy*dpr*rate; p.vx*=.95; p.vy=p.vy*.95+.05*rate; p.life-=.014*rate;
+    ctx.globalAlpha=Math.max(0,p.life); ctx.fillStyle=p.w?'#fff':pcol; ctx.beginPath(); ctx.arc(p.x,p.y,p.s*dpr*(.5+p.life),0,7); ctx.fill(); }
+  ctx.globalAlpha=1;
+}
+const center = el => { const r=el.getBoundingClientRect(), s=stage.getBoundingClientRect(); return {x:(r.left+r.width/2-s.left)*dpr, y:(r.top+r.height/2-s.top)*dpr, r, s}; };
+
+/* ---------- chrome ---------- */
+function setChrome(i){
+  const t=SLIDES[i].theme;
+  stage.dataset.chrome=t.chrome; pcol=t.accent; additive=t.chrome==='light';
+  stage.style.setProperty('--flash', t.chrome==='light'?t.accent:'#fff');
+  $('#cur').textContent=String(i+1).padStart(2,'0');
+  segs.forEach((s,j)=>{ s.getAnimations().forEach(a=>a.cancel()); s.style.transform=`scaleX(${j<i?1:0})`; });
+  const a=segs[i].animate([{transform:'scaleX(0)'},{transform:'scaleX(1)'}],{duration:CYCLE,fill:'both'}); a.playbackRate=rate; if(paused) a.pause();
+}
+
+/* ============================================================
+   SLIDE PLAY — arrive → open/boot → buy block → explode → snap → orbit
+   ============================================================ */
+async function playSlide(i){
+  const s=els[i], q=x=>$(x,s), qa=x=>$$(x,s);
+  setChrome(i); s.classList.add('on'); s.style.zIndex=2;
+  const cam=q('.cam'), W=cam.offsetWidth, portrait=isPortrait();
+  const exploded=portrait?`translate(${-W*.17}px,${-W*.5}px) scale(.68)`:`translate(0px,${-W*.52}px) scale(.58)`;
+  const reflop=+cs(s,'--reflop')||.3;
+
+  // ARRIVE — laptop rockets in from deep space, spinning closed
+  qa('.bgi').forEach(b=>{ b.style.animation='none'; b.offsetWidth; b.style.animation=''; });
+  A(q('.bg .flat'),[{opacity:1},{opacity:0}],{d:1300,e:'ease-out'});
+  A(q('.rig'),[{opacity:0,transform:'translateZ(-9000px) rotateY(900deg) rotateX(60deg)'},{opacity:1,offset:.15},{opacity:1,transform:'translateZ(0px) rotateY(0deg) rotateX(0deg)'}],{d:1500});
+  qa('.shadow').forEach((sh,j)=>A(sh,[{opacity:0,transform:'scale(.1)'},{opacity:j?.85:1,transform:'scale(1)'}],{d:1300,delay:250}));
+  A(q('.bloom'),[{opacity:0},{opacity:.35}],{d:1400});
+  qa('.name .ch').forEach((c,j)=>A(c,[{opacity:0,transform:'translateY(-.2em) scale(2.8)',filter:'blur(16px)'},{opacity:1,transform:'none',filter:'blur(0px)'}],{d:750,delay:500+j*42,e:EASE.pop}));
+  await sleep(1300);
+
+  const steps = [
+    async()=>{ // LID OPEN + BOOT FLASH
+      A(cam,[{'--lid':'-88deg'},{'--lid':'26deg',offset:.55},{'--lid':'3deg',offset:.8},{'--lid':'10deg'}],{d:1000,e:'cubic-bezier(.35,0,.2,1)'});
+      await sleep(430);
+      A(q('.scr'),[{clipPath:'inset(49.6% 50% 49.6% 50%)',filter:'brightness(6)'},{clipPath:'inset(49.6% 0% 49.6% 0%)',filter:'brightness(6)',offset:.3},{clipPath:'inset(0% 0% 0% 0%)',filter:'brightness(1)'}],{d:750});
+      A(q('.bloom'),[{opacity:.35},{opacity:1,offset:.2},{opacity:.6}],{d:1400,delay:150,e:'ease-out'});
+      A(q('.rays'),[{opacity:0,transform:'scale(.6)'},{opacity:1,transform:'scale(1)'}],{d:1600,delay:150});
+      A(q('.refl'),[{opacity:0},{opacity:reflop}],{d:1300,delay:300});   // the floor only lights up once the screen does
+      A($('#flash'),[{opacity:0},{opacity:.22,offset:.15},{opacity:0}],{d:700,delay:150,e:'ease-out'});
+      await sleep(260);
+      const c=center(q('.scr')); if(skipTo===null) burst(c.x,c.y,90,14);
+      await sleep(700);
+    },
+    async()=>{ // BUY BLOCK
+      const [cat,price,cta]=qa('.info>*');
+      A(cat,[{opacity:0,transform:'translateY(24px)'},{opacity:1,transform:'none'}],{d:700});
+      A(price,[{opacity:0,transform:'translateY(24px)'},{opacity:1,transform:'none'}],{d:700,delay:90});
+      qa('.dg').forEach((d,j)=>A($('.roll',d),[{transform:'translateY(0%)'},{transform:`translateY(-${(10+ +d.dataset.d)*5}%)`}],{d:1400,delay:150+j*90,e:'cubic-bezier(.2,.7,.1,1)'}));
+      A(cta,[{opacity:0,transform:'translateY(24px) scale(.9)'},{opacity:1,transform:'none'}],{d:800,delay:200,e:EASE.pop});
+      await sleep(800);
+    },
+    async()=>{ // EXPLODED VIEW
+      A(cam,[{'--ax':cs(cam,'--ax'),'--ay':cs(cam,'--ay'),'--lid':'10deg'},{'--ax':'-32deg','--ay':'-7deg','--lid':'4deg'}],{d:1100,e:EASE.io});
+      A(q('.lift'),[{transform:'translate(0px,0px) scale(1)'},{transform:exploded}],{d:1100,e:EASE.io});
+      A(q('.name'),[{opacity:1},{opacity:.14}],{d:700});
+      A(q('.refl'),[{opacity:reflop},{opacity:0}],{d:700});      // nothing left down there to reflect
+      A(q('.info'),[{opacity:1,transform:'translateY(0px)'},{opacity:0,transform:'translateY(20px)'}],{d:500});
+      qa('.plate').forEach(p=>{ const n=+p.style.getPropertyValue('--n'); A(p,[{'--e':0},{'--e':1}],{d:1150,delay:150+n*90}); });
+      A(q('.l-glass'),[{'--e':0},{'--e':1}],{d:1000,delay:250});
+      qa('.key').forEach(k=>{ const c=+k.style.getPropertyValue('--c');
+        A(k,[{transform:'translateZ(0px)'},{transform:`translateZ(${W*.06}px)`,offset:.35},{transform:'translateZ(0px)'}],{d:800,delay:900+c*38,e:'ease-in-out'}); });
+      qa('.cell i').forEach((c,j)=>A(c,[{height:'0%'},{height:'100%'}],{d:1200,delay:900+j*120}));
+      qa('.anc').forEach((a,j)=>{
+        A($('.lead',a),[{opacity:0,transform:'scale(0)'},{opacity:1,transform:'scale(1)'}],{d:450,delay:850+j*110});
+        A($('.tag-in',a),[{opacity:0,transform:'scale(.5)'},{opacity:1,transform:'scale(1)'}],{d:650,delay:980+j*110,e:EASE.pop});
+        if(skipTo===null) setTimeout(()=>count($('.v',a),900), (980+j*110)/rate);
+      });
+      await sleep(3000);
+    },
+    async()=>{ // SNAP BACK + IMPACT
+      qa('.tag-in,.lead').forEach(t=>A(t,[{opacity:1},{opacity:0}],{d:180,e:'linear'}));
+      A(cam,[{'--ax':'-32deg','--ay':'-7deg','--lid':'4deg'},{'--ax':'-16deg','--ay':'-26deg','--lid':'10deg'}],{d:650,e:EASE.io});
+      A(q('.lift'),[{transform:exploded},{transform:'translate(0px,0px) scale(1)'}],{d:650,e:EASE.io});
+      qa('.plate').forEach(p=>{ const n=+p.style.getPropertyValue('--n'); A(p,[{'--e':1},{'--e':0}],{d:420,delay:(4-n)*35,e:EASE.in}); });
+      A(q('.l-glass'),[{'--e':1},{'--e':0}],{d:400,e:EASE.in});
+      A(q('.name'),[{opacity:.14},{opacity:1}],{d:600,delay:400});
+      A(q('.refl'),[{opacity:0},{opacity:reflop}],{d:700,delay:350});
+      A(q('.info'),[{opacity:0,transform:'translateY(20px)'},{opacity:1,transform:'translateY(0px)'}],{d:500,delay:500});
+      await sleep(560);
+      // impact
+      A(q('.world'),[{transform:'translate(0px,0px)'},{transform:'translate(-9px,6px)'},{transform:'translate(7px,-5px)'},{transform:'translate(-4px,3px)'},{transform:'translate(0px,0px)'}],{d:300,e:'linear'});
+      A(q('.wave'),[{opacity:1,transform:'scale(.4)'},{opacity:0,transform:'scale(2.8)'}],{d:950});
+      A(q('.bloom'),[{opacity:1},{opacity:.6}],{d:700,e:'ease-out'});
+      A($('#flash'),[{opacity:.18},{opacity:0}],{d:350,e:'ease-out'});
+      const f=center(q('.floor')); if(skipTo===null) burst(f.x,f.y,70,16,true);
+      await sleep(500);
+    },
+    async()=>{ // ORBIT HOLD
+      A(cam,[{'--ay':cs(cam,'--ay')},{'--ay':'-12deg'}],{d:1700,e:'ease-in-out'});
+      await sleep(1500);
+    },
+  ];
+  for(const st of steps){ if(skipTo!==null) break; await st(); }
+}
+
+/* ============================================================
+   DIVE — camera faces the screen, zooms THROUGH it into the next slide
+   ============================================================ */
+async function dive(i,to){
+  diving=true; hydrate(els[to]);
+  const s=els[i], n=els[to], q=x=>$(x,s), qa=x=>$$(x,s), cam=q('.cam'), nt=SLIDES[to].theme;
+  qa('.tag-in,.lead').forEach(t=>A(t,[{opacity:cs(t,'opacity')},{opacity:0}],{d:200}));
+  A(q('.info'),[{opacity:cs(q('.info'),'opacity'),transform:'translateY(0px)'},{opacity:0,transform:'translateY(30px)'}],{d:350,e:EASE.in});
+  A(q('.name'),[{opacity:cs(q('.name'),'opacity'),transform:'scale(1)'},{opacity:0,transform:'scale(1.15)'}],{d:550,e:EASE.in});
+  A(cam,[{'--ax':cs(cam,'--ax'),'--ay':cs(cam,'--ay'),'--lid':cs(cam,'--lid')},{'--ax':'0deg','--ay':'0deg','--lid':'0deg'}],{d:650,e:EASE.io});
+  const lt=getComputedStyle(q('.lift')).transform;
+  A(q('.lift'),[{transform:lt==='none'?'matrix(1,0,0,1,0,0)':lt},{transform:'matrix(1,0,0,1,0,0)'}],{d:450});
+  qa('.plate,.l-glass').forEach(p=>A(p,[{'--e':+cs(p,'--e')||0},{'--e':0}],{d:400}));
+  q('.scr').getAnimations().forEach(a=>{ if(finite(a)) a.finish(); });
+  const portal=q('.portal'); portal.style.background=nt.flat||nt.bg;
+  A(portal,[{opacity:0},{opacity:1}],{d:420,delay:330,e:'ease-in'});
+  await sleep(660);
+
+  const c=center(q('.scr')), sw=c.s.width, sh=c.s.height, cx=c.x/dpr, cy=c.y/dpr;
+  const S=Math.max(sw/c.r.width, sh/c.r.height)*1.7, world=q('.world');
+  world.style.transformOrigin=`${cx}px ${cy}px`;
+  A(world,[{transform:'translate(0px,0px) scale(1)'},{transform:`translate(${sw/2-cx}px,${sh/2-cy}px) scale(${S})`}],{d:900,e:'cubic-bezier(.6,0,.9,.45)'});
+  stage.style.setProperty('--warp', nt.chrome==='light'?'rgba(255,255,255,.5)':'rgba(0,0,0,.22)');
+  A($('#warp'),[{opacity:0,transform:'scale(1.5) rotate(0deg)'},{opacity:1,offset:.6},{opacity:0,transform:'scale(.7) rotate(25deg)'}],{d:1300,delay:250,e:'ease-in'});
+  await sleep(900);
+
+  n.classList.add('on'); n.style.zIndex=3;
+  resetSlide(s); index=to; diving=false;
+}
+function resetSlide(s){
+  s.classList.remove('on'); s.style.zIndex='';
+  s.getAnimations({subtree:true}).filter(finite).forEach(a=>a.cancel());
+  $('.world',s).style.transformOrigin='';
+  $$('.v',s).forEach(v=>{ if(v.dataset.txt) v.textContent=v.dataset.txt; });
+}
+
+async function run(){
+  while(true){
+    await playSlide(index);
+    const to = skipTo ?? (index+1)%N; skipTo=null;
+    await dive(index,to);
+  }
+}
+function request(to){
+  to=(to+N)%N; if(diving || to===index || skipTo!==null) return;
+  skipTo=to; finishAll();
+}
+
+/* ---------- controls ---------- */
+addEventListener('keydown',e=>{
+  const k=e.key.toLowerCase();
+  if(e.key==='ArrowRight') request(index+1);
+  else if(e.key==='ArrowLeft') request(index-1);
+  else if(k===' '){ e.preventDefault(); paused=!paused; document.getAnimations().forEach(a=>paused?a.pause():(a.playState==='paused'&&a.play())); }
+  else if(k==='s'){ rate = rate===1 ? .25 : 1; document.getAnimations().forEach(a=>a.updatePlaybackRate(rate)); }
+  else if(k==='r'){ document.body.classList.toggle('reel'); requestAnimationFrame(()=>{ fitNames(); sizeFx(); }); }
+  else if(k==='l') document.body.classList.toggle('layers');
+});
+$('#segs').addEventListener('click',e=>{ const g=e.target.closest('[data-go]'); if(g) request(+g.dataset.go); });
+stage.addEventListener('click',e=>{
+  if(e.target.closest('.segs')) return;
+  if(e.target.closest('a')) e.preventDefault();
+  if(swiped) return;                                     // a swipe already chose where to go
+  const x=e.clientX-stage.getBoundingClientRect().left; request(index + (x < stage.clientWidth*.3 ? -1 : 1));
+});
+/* swipe, because a thumb on a reel expects to */
+let tx=0, ty=0, swiped=false;
+stage.addEventListener('touchstart',e=>{ const t=e.changedTouches[0]; tx=t.clientX; ty=t.clientY; swiped=false; },{passive:true});
+stage.addEventListener('touchend',e=>{
+  const t=e.changedTouches[0], dx=t.clientX-tx, dy=t.clientY-ty;
+  if(Math.abs(dx)>42 && Math.abs(dx)>Math.abs(dy)){ swiped=true; request(index + (dx<0 ? 1 : -1)); }
+},{passive:true});
+addEventListener('resize',()=>{ fitNames(); sizeFx(); });
+addEventListener('orientationchange',()=>setTimeout(()=>{ fitNames(); sizeFx(); },300));
+/* a backgrounded tab drifts out of sync with the segment bar; start the slide over on return */
+addEventListener('visibilitychange',()=>{ if(!document.hidden && !paused) document.getAnimations().forEach(a=>{ if(a.playState==='paused') a.play(); }); });
+
+/* ---------- boot: ?reel for 9:16 frame, #s3 to start on slide 3 ---------- */
+if(/[?&]reel/.test(location.search)) document.body.classList.add('reel');
+index=START;
+fitNames(); sizeFx(); fx();
+(document.fonts?.ready ?? Promise.resolve()).then(()=>{ fitNames(); run(); });
+</script>
+</body>
+</html>

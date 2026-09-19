@@ -1,0 +1,162 @@
+{
+ "nightforge-lid": {
+  "w": 588,
+  "h": 426,
+  "ratio": 1.38
+ },
+ "nightforge-deck": {
+  "w": 704,
+  "h": 495,
+  "ratio": 1.422
+ },
+ "nightforge-board": {
+  "w": 835,
+  "h": 452,
+  "ratio": 1.847
+ },
+ "nightforge-battery": {
+  "w": 856,
+  "h": 322,
+  "ratio": 2.658
+ },
+ "nightforge-bottom": {
+  "w": 713,
+  "h": 517,
+  "ratio": 1.379
+ },
+ "aero-lid": {
+  "w": 589,
+  "h": 407,
+  "ratio": 1.447
+ },
+ "aero-deck": {
+  "w": 663,
+  "h": 472,
+  "ratio": 1.405
+ },
+ "aero-board": {
+  "w": 662,
+  "h": 434,
+  "ratio": 1.525
+ },
+ "aero-battery": {
+  "w": 844,
+  "h": 353,
+  "ratio": 2.391
+ },
+ "aero-bottom": {
+  "w": 654,
+  "h": 454,
+  "ratio": 1.441
+ },
+ "studio-lid": {
+  "w": 636,
+  "h": 448,
+  "ratio": 1.42
+ },
+ "studio-deck": {
+  "w": 672,
+  "h": 480,
+  "ratio": 1.4
+ },
+ "studio-board": {
+  "w": 753,
+  "h": 468,
+  "ratio": 1.609
+ },
+ "studio-battery": {
+  "w": 706,
+  "h": 231,
+  "ratio": 3.056
+ },
+ "studio-bottom": {
+  "w": 589,
+  "h": 422,
+  "ratio": 1.396
+ },
+ "ledger-lid": {
+  "w": 582,
+  "h": 423,
+  "ratio": 1.376
+ },
+ "ledger-deck": {
+  "w": 728,
+  "h": 494,
+  "ratio": 1.474
+ },
+ "ledger-board": {
+  "w": 829,
+  "h": 459,
+  "ratio": 1.806
+ },
+ "ledger-battery": {
+  "w": 900,
+  "h": 307,
+  "ratio": 2.932
+ },
+ "ledger-bottom": {
+  "w": 654,
+  "h": 461,
+  "ratio": 1.419
+ },
+ "nightforge-keys": {
+  "w": 900,
+  "h": 408,
+  "ratio": 2.206
+ },
+ "aero-keys": {
+  "w": 900,
+  "h": 442,
+  "ratio": 2.036
+ },
+ "studio-keys": {
+  "w": 900,
+  "h": 406,
+  "ratio": 2.217
+ },
+ "ledger-keys": {
+  "w": 900,
+  "h": 403,
+  "ratio": 2.233
+ },
+ "nightforge-bezel": {
+  "w": 606,
+  "h": 414,
+  "hole": [
+   1.98,
+   2.31,
+   7.25,
+   11.11
+  ]
+ },
+ "aero-bezel": {
+  "w": 588,
+  "h": 406,
+  "hole": [
+   1.87,
+   2.04,
+   6.4,
+   10.84
+  ]
+ },
+ "studio-bezel": {
+  "w": 636,
+  "h": 445,
+  "hole": [
+   2.04,
+   2.2,
+   5.39,
+   6.29
+  ]
+ },
+ "ledger-bezel": {
+  "w": 782,
+  "h": 565,
+  "hole": [
+   2.43,
+   2.56,
+   7.96,
+   12.21
+  ]
+ }
+}

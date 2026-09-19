@@ -1,0 +1,130 @@
+[
+  {
+    "name": "nightforge-bg-wide",
+    "prompt": "A wide 16:9 background photograph of a dark cinematic studio: a black glossy reflective floor, deep red haze, red volumetric light glowing from far behind the centre, a few faint floating embers, near-black edges. The centre of the image is an EMPTY stage where a product will be placed later; the floor horizon sits at about 65% of the image height. Photorealistic, soft depth of field. No objects, no products, no people, no furniture, no text, no logos."
+  },
+  {
+    "name": "nightforge-bg-tall",
+    "prompt": "A tall vertical 9:16 background photograph of a dark cinematic studio: a black glossy reflective floor, deep red haze, red volumetric light glowing from far behind the centre, a few faint floating embers, near-black edges. The centre of the image is an EMPTY stage where a product will be placed later; the floor horizon sits at about 65% of the image height. Photorealistic, soft depth of field. No objects, no products, no people, no furniture, no text, no logos."
+  },
+  {
+    "name": "nightforge-screen",
+    "prompt": "A wide 16:10 desktop wallpaper artwork filling the entire image edge to edge: an epic dark cinematic sci-fi game landscape: a lone armoured figure on a cliff facing a colossal glowing red portal in a stormy night sky, embers and red volumetric light, deep blacks. No text, no letters, no logos, no user interface, no device frame, no border."
+  },
+  {
+    "name": "nightforge-lid",
+    "prompt": "The closed outer lid (top cover) of a matte black aluminium gaming laptop with sharp angular edges and thin red accent details, seen alone from the outside. Shot from directly above as a flat orthographic top-down view with no perspective and no tilt, the object perfectly straight and centred, filling about 85% of the frame width. Wide 16:9 image. Crisp realistic studio product photography, soft even lighting. The lid is a plain rectangle with rounded corners and a small simple geometric emblem in the centre, no brand name, no text. Place it on a completely flat, uniform, solid #FF00FF magenta background: one single colour with no gradient, no shading, no shadow, no reflection, no table, no text, no watermark."
+  },
+  {
+    "name": "nightforge-deck",
+    "prompt": "The top case of a matte black aluminium gaming laptop with sharp angular edges and thin red accent details with ALL the keycaps removed: the empty keyboard area shows neat rows of small bare key switch mechanisms, plus a large glass trackpad below and speaker grilles on both sides. The screen is detached and not shown. Shot from directly above as a flat orthographic top-down view with no perspective and no tilt, the object perfectly straight and centred, filling about 85% of the frame width. Wide 16:9 image. Crisp realistic studio product photography, soft even lighting. No text, no logos. Place it on a completely flat, uniform, solid #FF00FF magenta background: one single colour with no gradient, no shading, no shadow, no reflection, no table, no text, no watermark."
+  },
+  {
+    "name": "nightforge-board",
+    "prompt": "The internal motherboard assembly of a matte black aluminium gaming laptop with sharp angular edges and thin red accent details, removed from its case and seen alone: a dark circuit board with two round cooling fans at the back corners, copper heat pipes running across the processor and graphics chips, memory modules and an M.2 SSD, with tiny red LED details. Shot from directly above as a flat orthographic top-down view with no perspective and no tilt, the object perfectly straight and centred, filling about 85% of the frame width. Wide 16:9 image. Crisp realistic studio product photography, soft even lighting. No text, no logos. Place it on a completely flat, uniform, solid #FF00FF magenta background: one single colour with no gradient, no shading, no shadow, no reflection, no table, no text, no watermark."
+  },
+  {
+    "name": "nightforge-battery",
+    "prompt": "A single flat laptop battery pack for a matte black aluminium gaming laptop with sharp angular edges and thin red accent details, seen alone: a wide slim black rectangular lithium-ion pack made of four cells side by side, with a small connector cable. Shot from directly above as a flat orthographic top-down view with no perspective and no tilt, the object perfectly straight and centred, filling about 85% of the frame width. Wide 16:9 image. Crisp realistic studio product photography, soft even lighting. No readable text, no logos. Place it on a completely flat, uniform, solid #FF00FF magenta background: one single colour with no gradient, no shading, no shadow, no reflection, no table, no text, no watermark."
+  },
+  {
+    "name": "nightforge-bottom",
+    "prompt": "The bottom cover (underside panel) of a matte black aluminium gaming laptop with sharp angular edges and thin red accent details, seen alone from below: large ventilation grille cut-outs, four rubber feet, small screws around the edge. Shot from directly above as a flat orthographic top-down view with no perspective and no tilt, the object perfectly straight and centred, filling about 85% of the frame width. Wide 16:9 image. Crisp realistic studio product photography, soft even lighting. No text, no logos, no stickers. Place it on a completely flat, uniform, solid #FF00FF magenta background: one single colour with no gradient, no shading, no shadow, no reflection, no table, no text, no watermark."
+  },
+  {
+    "name": "aero-bg-wide",
+    "prompt": "A wide 16:9 background photograph of a bright airy minimalist studio: a seamless white-to-pale-blue infinity cove, a soft glossy white floor, gentle electric-blue light glowing from far behind the centre, very clean. The centre of the image is an EMPTY stage where a product will be placed later; the floor horizon sits at about 65% of the image height. Photorealistic, soft depth of field. No objects, no products, no people, no furniture, no text, no logos."
+  },
+  {
+    "name": "aero-bg-tall",
+    "prompt": "A tall vertical 9:16 background photograph of a bright airy minimalist studio: a seamless white-to-pale-blue infinity cove, a soft glossy white floor, gentle electric-blue light glowing from far behind the centre, very clean. The centre of the image is an EMPTY stage where a product will be placed later; the floor horizon sits at about 65% of the image height. Photorealistic, soft depth of field. No objects, no products, no people, no furniture, no text, no logos."
+  },
+  {
+    "name": "aero-screen",
+    "prompt": "A wide 16:10 desktop wallpaper artwork filling the entire image edge to edge: a calm abstract wallpaper of flowing translucent glass ribbons in electric blue and pale sky blue on a soft white background, airy and bright. No text, no letters, no logos, no user interface, no device frame, no border."
+  },
+  {
+    "name": "aero-lid",
+    "prompt": "The closed outer lid (top cover) of an ultra-thin silver aluminium ultrabook with soft rounded edges and a clean minimalist finish, seen alone from the outside. Shot from directly above as a flat orthographic top-down view with no perspective and no tilt, the object perfectly straight and centred, filling about 85% of the frame width. Wide 16:9 image. Crisp realistic studio product photography, soft even lighting. The lid is a plain rectangle with rounded corners and a small simple geometric emblem in the centre, no brand name, no text. Place it on a completely flat, uniform, solid #FF00FF magenta background: one single colour with no gradient, no shading, no shadow, no reflection, no table, no text, no watermark."
+  },
+  {
+    "name": "aero-deck",
+    "prompt": "The top case of an ultra-thin silver aluminium ultrabook with soft rounded edges and a clean minimalist finish with ALL the keycaps removed: the empty keyboard area shows neat rows of small bare key switch mechanisms, plus a large glass trackpad below and speaker grilles on both sides. The screen is detached and not shown. Shot from directly above as a flat orthographic top-down view with no perspective and no tilt, the object perfectly straight and centred, filling about 85% of the frame width. Wide 16:9 image. Crisp realistic studio product photography, soft even lighting. No text, no logos. Place it on a completely flat, uniform, solid #FF00FF magenta background: one single colour with no gradient, no shading, no shadow, no reflection, no table, no text, no watermark."
+  },
+  {
+    "name": "aero-board",
+    "prompt": "The internal motherboard assembly of an ultra-thin silver aluminium ultrabook with soft rounded edges and a clean minimalist finish, removed from its case and seen alone: a dark circuit board with two round cooling fans at the back corners, copper heat pipes running across the processor and graphics chips, memory modules and an M.2 SSD, with tiny blue LED details. Shot from directly above as a flat orthographic top-down view with no perspective and no tilt, the object perfectly straight and centred, filling about 85% of the frame width. Wide 16:9 image. Crisp realistic studio product photography, soft even lighting. No text, no logos. Place it on a completely flat, uniform, solid #FF00FF magenta background: one single colour with no gradient, no shading, no shadow, no reflection, no table, no text, no watermark."
+  },
+  {
+    "name": "aero-battery",
+    "prompt": "A single flat laptop battery pack for an ultra-thin silver aluminium ultrabook with soft rounded edges and a clean minimalist finish, seen alone: a wide slim black rectangular lithium-ion pack made of four cells side by side, with a small connector cable. Shot from directly above as a flat orthographic top-down view with no perspective and no tilt, the object perfectly straight and centred, filling about 85% of the frame width. Wide 16:9 image. Crisp realistic studio product photography, soft even lighting. No readable text, no logos. Place it on a completely flat, uniform, solid #FF00FF magenta background: one single colour with no gradient, no shading, no shadow, no reflection, no table, no text, no watermark."
+  },
+  {
+    "name": "aero-bottom",
+    "prompt": "The bottom cover (underside panel) of an ultra-thin silver aluminium ultrabook with soft rounded edges and a clean minimalist finish, seen alone from below: large ventilation grille cut-outs, four rubber feet, small screws around the edge. Shot from directly above as a flat orthographic top-down view with no perspective and no tilt, the object perfectly straight and centred, filling about 85% of the frame width. Wide 16:9 image. Crisp realistic studio product photography, soft even lighting. No text, no logos, no stickers. Place it on a completely flat, uniform, solid #FF00FF magenta background: one single colour with no gradient, no shading, no shadow, no reflection, no table, no text, no watermark."
+  },
+  {
+    "name": "studio-bg-wide",
+    "prompt": "A wide 16:9 background photograph of a moody dark violet studio: a dark glossy floor, soft drifting smoke, warm amber rim light glowing from far behind the centre, deep purple shadows at the edges. The centre of the image is an EMPTY stage where a product will be placed later; the floor horizon sits at about 65% of the image height. Photorealistic, soft depth of field. No objects, no products, no people, no furniture, no text, no logos."
+  },
+  {
+    "name": "studio-bg-tall",
+    "prompt": "A tall vertical 9:16 background photograph of a moody dark violet studio: a dark glossy floor, soft drifting smoke, warm amber rim light glowing from far behind the centre, deep purple shadows at the edges. The centre of the image is an EMPTY stage where a product will be placed later; the floor horizon sits at about 65% of the image height. Photorealistic, soft depth of field. No objects, no products, no people, no furniture, no text, no logos."
+  },
+  {
+    "name": "studio-screen",
+    "prompt": "A wide 16:10 desktop wallpaper artwork filling the entire image edge to edge: a rich abstract wallpaper of swirling liquid paint in warm amber, gold and deep violet, like ink in water, high detail. No text, no letters, no logos, no user interface, no device frame, no border."
+  },
+  {
+    "name": "studio-lid",
+    "prompt": "The closed outer lid (top cover) of a dark graphite space-grey aluminium creator laptop with a precise premium finish and subtle amber details, seen alone from the outside. Shot from directly above as a flat orthographic top-down view with no perspective and no tilt, the object perfectly straight and centred, filling about 85% of the frame width. Wide 16:9 image. Crisp realistic studio product photography, soft even lighting. The lid is a plain rectangle with rounded corners and a small simple geometric emblem in the centre, no brand name, no text. Place it on a completely flat, uniform, solid #FF00FF magenta background: one single colour with no gradient, no shading, no shadow, no reflection, no table, no text, no watermark."
+  },
+  {
+    "name": "studio-deck",
+    "prompt": "The top case of a dark graphite space-grey aluminium creator laptop with a precise premium finish and subtle amber details with ALL the keycaps removed: the empty keyboard area shows neat rows of small bare key switch mechanisms, plus a large glass trackpad below and speaker grilles on both sides. The screen is detached and not shown. Shot from directly above as a flat orthographic top-down view with no perspective and no tilt, the object perfectly straight and centred, filling about 85% of the frame width. Wide 16:9 image. Crisp realistic studio product photography, soft even lighting. No text, no logos. Place it on a completely flat, uniform, solid #FF00FF magenta background: one single colour with no gradient, no shading, no shadow, no reflection, no table, no text, no watermark."
+  },
+  {
+    "name": "studio-board",
+    "prompt": "The internal motherboard assembly of a dark graphite space-grey aluminium creator laptop with a precise premium finish and subtle amber details, removed from its case and seen alone: a dark circuit board with two round cooling fans at the back corners, copper heat pipes running across the processor and graphics chips, memory modules and an M.2 SSD, with tiny amber LED details. Shot from directly above as a flat orthographic top-down view with no perspective and no tilt, the object perfectly straight and centred, filling about 85% of the frame width. Wide 16:9 image. Crisp realistic studio product photography, soft even lighting. No text, no logos. Place it on a completely flat, uniform, solid #FF00FF magenta background: one single colour with no gradient, no shading, no shadow, no reflection, no table, no text, no watermark."
+  },
+  {
+    "name": "studio-battery",
+    "prompt": "A single flat laptop battery pack for a dark graphite space-grey aluminium creator laptop with a precise premium finish and subtle amber details, seen alone: a wide slim black rectangular lithium-ion pack made of four cells side by side, with a small connector cable. Shot from directly above as a flat orthographic top-down view with no perspective and no tilt, the object perfectly straight and centred, filling about 85% of the frame width. Wide 16:9 image. Crisp realistic studio product photography, soft even lighting. No readable text, no logos. Place it on a completely flat, uniform, solid #FF00FF magenta background: one single colour with no gradient, no shading, no shadow, no reflection, no table, no text, no watermark."
+  },
+  {
+    "name": "studio-bottom",
+    "prompt": "The bottom cover (underside panel) of a dark graphite space-grey aluminium creator laptop with a precise premium finish and subtle amber details, seen alone from below: large ventilation grille cut-outs, four rubber feet, small screws around the edge. Shot from directly above as a flat orthographic top-down view with no perspective and no tilt, the object perfectly straight and centred, filling about 85% of the frame width. Wide 16:9 image. Crisp realistic studio product photography, soft even lighting. No text, no logos, no stickers. Place it on a completely flat, uniform, solid #FF00FF magenta background: one single colour with no gradient, no shading, no shadow, no reflection, no table, no text, no watermark."
+  },
+  {
+    "name": "ledger-bg-wide",
+    "prompt": "A wide 16:9 background photograph of a calm light sage-green architectural space: a smooth pale concrete floor, soft daylight, long gentle geometric shadows on the back wall, a faint green glow behind the centre. The centre of the image is an EMPTY stage where a product will be placed later; the floor horizon sits at about 65% of the image height. Photorealistic, soft depth of field. No objects, no products, no people, no furniture, no text, no logos."
+  },
+  {
+    "name": "ledger-bg-tall",
+    "prompt": "A tall vertical 9:16 background photograph of a calm light sage-green architectural space: a smooth pale concrete floor, soft daylight, long gentle geometric shadows on the back wall, a faint green glow behind the centre. The centre of the image is an EMPTY stage where a product will be placed later; the floor horizon sits at about 65% of the image height. Photorealistic, soft depth of field. No objects, no products, no people, no furniture, no text, no logos."
+  },
+  {
+    "name": "ledger-screen",
+    "prompt": "A wide 16:10 desktop wallpaper artwork filling the entire image edge to edge: a clean abstract wallpaper of layered deep green and navy geometric waves with soft light, professional and calm. No text, no letters, no logos, no user interface, no device frame, no border."
+  },
+  {
+    "name": "ledger-lid",
+    "prompt": "The closed outer lid (top cover) of a dark charcoal business laptop with a soft-touch matte finish and a rugged, professional design, seen alone from the outside. Shot from directly above as a flat orthographic top-down view with no perspective and no tilt, the object perfectly straight and centred, filling about 85% of the frame width. Wide 16:9 image. Crisp realistic studio product photography, soft even lighting. The lid is a plain rectangle with rounded corners and a small simple geometric emblem in the centre, no brand name, no text. Place it on a completely flat, uniform, solid #FF00FF magenta background: one single colour with no gradient, no shading, no shadow, no reflection, no table, no text, no watermark."
+  },
+  {
+    "name": "ledger-deck",
+    "prompt": "The top case of a dark charcoal business laptop with a soft-touch matte finish and a rugged, professional design with ALL the keycaps removed: the empty keyboard area shows neat rows of small bare key switch mechanisms, plus a large glass trackpad below and speaker grilles on both sides. The screen is detached and not shown. Shot from directly above as a flat orthographic top-down view with no perspective and no tilt, the object perfectly straight and centred, filling about 85% of the frame width. Wide 16:9 image. Crisp realistic studio product photography, soft even lighting. No text, no logos. Place it on a completely flat, uniform, solid #FF00FF magenta background: one single colour with no gradient, no shading, no shadow, no reflection, no table, no text, no watermark."
+  },
+  {
+    "name": "ledger-board",
+    "prompt": "The internal motherboard assembly of a dark charcoal business laptop with a soft-touch matte finish and a rugged, professional design, removed from its case and seen alone: a dark circuit board with two round cooling fans at the back corners, copper heat pipes running across the processor and graphics chips, memory modules and an M.2 SSD, with tiny green LED details. Shot from directly above as a flat orthographic top-down view with no perspective and no tilt, the object perfectly straight and centred, filling about 85% of the frame width. Wide 16:9 image. Crisp realistic studio product photography, soft even lighting. No text, no logos. Place it on a completely flat, uniform, solid #FF00FF magenta background: one single colour with no gradient, no shading, no shadow, no reflection, no table, no text, no watermark."
+  },
+  {
+    "name": "ledger-battery",
+    "prompt": "A single flat laptop battery pack for a dark charcoal business laptop with a soft-touch matte finish and a rugged, professional design, seen alone: a wide slim black rectangular lithium-ion pack made of four cells side by side, with a small connector cable. Shot from directly above as a flat orthographic top-down view with no perspective and no tilt, the object perfectly straight and centred, filling about 85% of the frame width. Wide 16:9 image. Crisp realistic studio product photography, soft even lighting. No readable text, no logos. Place it on a completely flat, uniform, solid #FF00FF magenta background: one single colour with no gradient, no shading, no shadow, no reflection, no table, no text, no watermark."
+  },
+  {
+    "name": "ledger-bottom",
+    "prompt": "The bottom cover (underside panel) of a dark charcoal business laptop with a soft-touch matte finish and a rugged, professional design, seen alone from below: large ventilation grille cut-outs, four rubber feet, small screws around the edge. Shot from directly above as a flat orthographic top-down view with no perspective and no tilt, the object perfectly straight and centred, filling about 85% of the frame width. Wide 16:9 image. Crisp realistic studio product photography, soft even lighting. No text, no logos, no stickers. Place it on a completely flat, uniform, solid #FF00FF magenta background: one single colour with no gradient, no shading, no shadow, no reflection, no table, no text, no watermark."
+  }
+]

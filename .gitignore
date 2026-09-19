@@ -1,0 +1,9 @@
+# Gemini Studio's raw renders and the working sheets: masters, not shipped.
+# Everything in img/ is rebuilt from them by _gen/cutout.py, cut-keys.py, cut-bezel.py, bg.py.
+_src/
+_shots/
+_gen/*.png
+_gen/*.log
+node_modules/
+Thumbs.db
+__pycache__/
